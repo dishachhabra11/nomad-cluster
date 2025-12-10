@@ -2,7 +2,7 @@ steps:
 # 1. Initialize Terraform
 - id: 'terraform init'
   # Use a publicly available Terraform Docker image (builder)
-  name: 'hashicorp/terraform:latest'
+  name: 'hashicorp/terraform:1.6.6'
   entrypoint: 'terraform'
   # Command arguments: terraform init
   args: ['init', '-chdir=./infrastructure']
