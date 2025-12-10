@@ -5,9 +5,8 @@ steps:
   name: 'hashicorp/terraform:latest'
   entrypoint: 'terraform'
   # Command arguments: terraform init
-  args:
-      - "init"
-      - "-chdir=infrastructure"
+  args: ['init', '-chdir=./infrastructure']
+
 
 # 2. Generate a Plan (preview changes)
 - id: 'terraform plan'
