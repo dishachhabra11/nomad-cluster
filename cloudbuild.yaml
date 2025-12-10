@@ -27,11 +27,6 @@ steps:
   # Set a timeout for the apply step to prevent indefinite runs
   timeout: '1200s' 
 
-# Optional: Define default substitution variables for use in the steps
-substitutions:
-  # PROJECT_ID is often automatically provided by Cloud Build but can be defined here
-  _PROJECT_ID: 'my-gcp-project-id'
-
 options:
   # This tells Cloud Build to send logs to Cloud Logging instead of a GCS bucket
   logging: CLOUD_LOGGING_ONLY
