@@ -1,4 +1,4 @@
-output "load-balancer-ip" {
-    value = module.nomad-lb-http.external_ip
-    description =  "the external ip of load balancer"
+output "load_balancer_ip" {
+  value       = google_compute_global_forwarding_rule.nomad_lb_forwarding.ip_address
+  description = "Public IP of the HTTP Load Balancer"
 }
