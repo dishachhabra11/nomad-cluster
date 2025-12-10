@@ -19,6 +19,8 @@ module "nomad-lb-http" {
   project           = "alfred-chainlake-staging"
   name              = "nomad-group-http-lb"
 
+  firewall_networks = ["default"]
+
   backends = {
     default = {
       port                            = 4646
