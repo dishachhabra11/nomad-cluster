@@ -126,6 +126,9 @@ resource "google_compute_backend_service" "nomad_backend" {
   timeout_sec           = 10
   enable_cdn            = false
   port_name             = "nomad-ui"
+  depends_on = [
+    google_compute_health_check.nomad_http
+  ]
   health_checks         = [google_compute_health_check.nomad_http.id]
   backend {
     group = google_compute_region_instance_group_manager.nomad_mig.instance_group
@@ -142,11 +145,17 @@ resource "google_compute_backend_service" "nomad_backend" {
 resource "google_compute_url_map" "nomad_lb_urlmap" {
   name            = "nomad-lb-urlmap"
   default_service = google_compute_backend_service.nomad_backend.self_link
+   depends_on = [
+    google_compute_backend_service.nomad_backend
+  ]
 }
 
 resource "google_compute_target_http_proxy" "nomad_lb_proxy" {
   name    = "nomad-lb-proxy"
   url_map = google_compute_url_map.nomad_lb_urlmap.self_link
+    depends_on = [
+     google_compute_url_map.nomad_lb_urlmap
+  ]
 }
 
 resource "google_compute_global_forwarding_rule" "nomad_lb_forwarding" {
