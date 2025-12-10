@@ -13,7 +13,7 @@ steps:
   name: 'hashicorp/terraform:latest'
   entrypoint: 'terraform'
                                                                      #  Command arguments: terraform plan -out=tfplan -var="project_id=${PROJECT_ID}"
-  args: ['plan', '-out=tfplan', '-var', 'project_id=${PROJECT_ID}']
+  args: ['plan', '-out=tfplan', '-var', 'project_id=${_PROJECT_ID}']
 
 # 3. Apply the Plan (deploy changes)
 # This step is often conditional to prevent accidental deployments
