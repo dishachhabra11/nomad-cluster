@@ -1,4 +1,3 @@
-
 terraform {
   required_providers {
     google = {
@@ -121,7 +120,7 @@ resource "google_compute_health_check" "nomad_http" {
 ## --------------backend service
 
 resource "google_compute_backend_service" "nomad_backend" {
-  name                  = "nomad-backend"
+  name                  = "nomad-backend_test"
   protocol              = "HTTP"
   timeout_sec           = 10
   enable_cdn            = false
