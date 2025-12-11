@@ -26,6 +26,8 @@ resource "google_compute_instance_template" "nomad_server" {
     boot         = true
   }
 
+  tags = ["nomad-server"]
+
   network_interface {
     network = "default"
     access_config {}  # Gives external IP
