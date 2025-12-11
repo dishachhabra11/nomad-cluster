@@ -28,9 +28,7 @@ resource "google_compute_instance_template" "nomad_server" {
 
   network_interface {
     network = "default"
-    access_config {
-
-    }  
+    access_config {}  # Gives external IP
   }
 
   metadata_startup_script = <<-EOF
@@ -86,8 +84,6 @@ EOT
 ## --------------------------------------------------------------------------------------------------
 ## 3. Managed Instance Group (MIG)
 ## --------------------------------------------------------------------------------------------------
-
-
  resource "google_compute_region_instance_group_manager" "nomad_mig" {
   name               = "nomad-mig"
   region             = "us-central1"
@@ -104,8 +100,9 @@ EOT
     name = "nomad-ui"
     port = 4646
   }
- }
+}
 
+## ------------- health ceck for load balancer 
 
 resource "google_compute_health_check" "nomad_http" {
   name               = "nomad-http-hc"
@@ -116,10 +113,9 @@ resource "google_compute_health_check" "nomad_http" {
 
   http_health_check {
     port = 4646
-    request_path = "/v1/agent/self"
+    request_path = "/"
   }
 }
-
 
 ## --------------backend service
 
@@ -136,13 +132,11 @@ resource "google_compute_backend_service" "nomad_backend" {
   backend {
     group = google_compute_region_instance_group_manager.nomad_mig.instance_group
   }
-
-  iap {
-    enabled              = true
-    oauth2_client_id     = "915898093084-faeml2e0brgn0j560dtp9uk9n0pnjeul.apps.googleusercontent.com"
-    oauth2_client_secret = data.google_secret_manager_secret_version.iap_secret.secret_data
-  }
 }
+
+
+
+
 
 ## ---------------------- https load balancer
 
@@ -181,23 +175,5 @@ resource "google_compute_firewall" "nomad_lb_fw" {
     ports    = ["4646"]
   }
 
-## should be load balancer ip 
-
   source_ranges = ["0.0.0.0/0"]
 }
-
-resource "google_iap_web_iam_binding" "allow_users" {
-  project = "alfred-chainlake-staging"
-  role    = "roles/iap.httpsResourceAccessor"
-  members = [
-    "user:dishachhabra173@gmail.com",
-    "user:jpatidar@deqode.com",
-  ]
-}
-
-data "google_secret_manager_secret_version" "iap_secret" {
-  secret  = "nomad_oath_client_secret"
-  version = "latest"
-}
-
-
