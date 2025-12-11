@@ -115,10 +115,14 @@ EOT
   stateful_external_ip {
     interface_name = "nic0"
   }
-  update_policy {
-  instance_redistribution_type = "NONE"
+update_policy {
   type                        = "OPPORTUNISTIC"
+  minimal_action              = "RESTART"
+  max_surge_fixed             = 0
+  max_unavailable_fixed       = 1
+  instance_redistribution_type = "NONE"
 }
+
 
 
  }
