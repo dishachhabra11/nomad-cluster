@@ -196,7 +196,7 @@ resource "google_iap_web_iam_binding" "allow_users" {
 }
 
 data "google_secret_manager_secret_version" "iap_secret" {
-  secret  = "nomad-oauth-client-secret"
+  secret  = "nomad_oath_client_secret"
   version = "latest"
 }
 
