@@ -11,9 +11,22 @@ steps:
 # 2. Generate a Plan (preview changes)
 - id: 'terraform plan'
   name: 'hashicorp/terraform:latest'
-  entrypoint: 'terraform'
+  entrypoint: 'bash'
                                                                      #  Command arguments: terraform plan -out=tfplan -var="project_id=${PROJECT_ID}"
-  args: ["-chdir=./infrastructure",'plan', '-out=tfplan', '-var', 'project_id=${_PROJECT_ID}']
+  args:
+    - '-c'
+    - | # Start of the multi-line bash command block
+      # 1. Export the Secret Manager value as a Terraform Environment Variable
+      #    The variable name in bash is $$DB_PASSWORD (note the double $$).
+      #    Terraform will automatically pick this up as var.db_password.
+
+      export TF_VAR_nomad_client_secret=$$NOMAD_SECRET
+      
+      # 2. Run the actual terraform command
+      terraform -chdir=./infrastructure plan -out=tfplan -var="project_id=${_PROJECT_ID}"
+  
+  # Crucial: This securely injects the secret into the environment of THIS step
+  secretEnv: ['NOMAD_SECRET']
 
 # 3. Apply the Plan (deploy changes)
 # This step is often conditional to prevent accidental deployments
@@ -30,3 +43,10 @@ steps:
 options:
   # This tells Cloud Build to send logs to Cloud Logging instead of a GCS bucket
   logging: CLOUD_LOGGING_ONLY
+
+
+availableSecrets:
+- secret: 'nomad_oath_client_secret' # The actual name of the secret in Secret Manager
+  version: 'latest'        # Or a specific version, like '1'
+  # The environment variable name used in the 'secretEnv' and 'export' command
+  env: 'NOMAD_SECRET'
