@@ -26,8 +26,6 @@ resource "google_compute_instance_template" "nomad_server" {
     boot         = true
   }
 
-  tags = ["nomad-server"]
-
   network_interface {
     network = "default"
     access_config {}  # Gives external IP
@@ -178,5 +176,4 @@ resource "google_compute_firewall" "nomad_lb_fw" {
   }
 
   source_ranges = ["0.0.0.0/0"]
-  target_tags   = ["nomad-server"]
 }
