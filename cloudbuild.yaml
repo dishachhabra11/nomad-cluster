@@ -7,18 +7,13 @@ steps:
   # Command arguments: terraform init
   args: ["-chdir=./infrastructure", "init"]
 
+
+# 2. Generate a Plan (preview changes)
 - id: 'terraform plan'
   name: 'hashicorp/terraform:latest'
-  entrypoint: 'bash'
-  args:
-      - '-c'
-      - |
-          export TF_VAR_nomad_client_secret="$NOMAD_SECRET"
-
-          # Run terraform plan inside infrastructure folder
-          terraform -chdir=./infrastructure plan -out=tfplan -var="project_id=${_PROJECT_ID}"
-  secretEnv:
-      - NOMAD_SECRET
+  entrypoint: 'terraform'
+                                                                     #  Command arguments: terraform plan -out=tfplan -var="project_id=${PROJECT_ID}"
+  args: ["-chdir=./infrastructure",'plan', '-out=tfplan', '-var', 'project_id=${_PROJECT_ID}']
 
 # 3. Apply the Plan (deploy changes)
 # This step is often conditional to prevent accidental deployments
@@ -35,9 +30,3 @@ steps:
 options:
   # This tells Cloud Build to send logs to Cloud Logging instead of a GCS bucket
   logging: CLOUD_LOGGING_ONLY
-
-
-availableSecrets:
-  secretManager:
-    - versionName: "projects/${_PROJECT_ID}/secrets/nomad_oath_client_secret/versions/latest"
-      env: "NOMAD_SECRET"

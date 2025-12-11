@@ -119,6 +119,7 @@ resource "google_compute_health_check" "nomad_http" {
   }
 }
 
+
 ## --------------backend service
 
 resource "google_compute_backend_service" "nomad_backend" {
@@ -138,7 +139,7 @@ resource "google_compute_backend_service" "nomad_backend" {
   iap {
     enabled              = true
     oauth2_client_id     = "915898093084-faeml2e0brgn0j560dtp9uk9n0pnjeul.apps.googleusercontent.com"
-    oauth2_client_secret = var.nomad_client_secret
+    oauth2_client_secret = var.oauth_client_secret
   }
 }
 
@@ -192,4 +193,10 @@ resource "google_iap_web_iam_binding" "allow_users" {
     "user:jpatidar@deqode.com",
   ]
 }
+
+data "google_secret_manager_secret_version" "iap_secret" {
+  secret  = "nomad-oauth-client-secret"
+  version = "latest"
+}
+
 
