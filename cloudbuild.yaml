@@ -19,7 +19,7 @@ steps:
           terraform -chdir=./infrastructure plan -out=tfplan -var="project_id=${_PROJECT_ID}"
   secretEnv:
       - NOMAD_SECRET
-      
+
 # 3. Apply the Plan (deploy changes)
 # This step is often conditional to prevent accidental deployments
 # For a basic example, we include it here:
@@ -38,7 +38,6 @@ options:
 
 
 availableSecrets:
-- secret: 'nomad_oath_client_secret' # The actual name of the secret in Secret Manager
-  version: 'latest'        # Or a specific version, like '1'
-  # The environment variable name used in the 'secretEnv' and 'export' command
-  env: 'NOMAD_SECRET'
+  secretManager:
+    - versionName: "projects/${_PROJECT_ID}/secrets/nomad_oath_client_secret/versions/latest"
+      env: "NOMAD_SECRET"
