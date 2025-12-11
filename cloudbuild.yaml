@@ -15,15 +15,12 @@ steps:
                                                                      #  Command arguments: terraform plan -out=tfplan -var="project_id=${PROJECT_ID}"
   args:
     - '-c'
-    - | # Start of the multi-line bash command block
-      # 1. Export the Secret Manager value as a Terraform Environment Variable
-      #    The variable name in bash is $$DB_PASSWORD (note the double $$).
-      #    Terraform will automatically pick this up as var.db_password.
-
-      export TF_VAR_nomad_client_secret=$$NOMAD_SECRET
+    - |
+       export TF_VAR_nomad_client_secret=$$NOMAD_SECRET
+       terraform -chdir=./infrastructure plan -out=tfplan -var="project_id=${_PROJECT_ID}"
       
       # 2. Run the actual terraform command
-      terraform -chdir=./infrastructure plan -out=tfplan -var="project_id=${_PROJECT_ID}"
+      
   
   # Crucial: This securely injects the secret into the environment of THIS step
   secretEnv: ['NOMAD_SECRET']
