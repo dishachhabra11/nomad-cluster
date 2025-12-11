@@ -205,6 +205,11 @@ resource "google_compute_region_disk" "data_disk" {
   region = "us-central1"
   size   = 50
   type   = "pd-balanced"
+
+   replica_zones = [
+    "us-central1-a",
+    "us-central1-b"
+  ]
 }
 
 
