@@ -28,7 +28,9 @@ resource "google_compute_instance_template" "nomad_server" {
 
   network_interface {
     network = "default"
-    access_config {}  # Gives external IP
+    access_config {
+
+    }  # Gives external IP
   }
 
   metadata_startup_script = <<-EOF
@@ -113,7 +115,7 @@ resource "google_compute_health_check" "nomad_http" {
 
   http_health_check {
     port = 4646
-    request_path = "/"
+    request_path = "/v1/agent/self"
   }
 }
 
