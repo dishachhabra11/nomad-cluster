@@ -1,3 +1,6 @@
+
+
+
 terraform {
   required_providers {
     google = {
@@ -104,6 +107,7 @@ EOT
     name = "nomad-ui"
     port = 4646
   }
+ }
 
 
 resource "google_compute_health_check" "nomad_http" {
@@ -119,6 +123,7 @@ resource "google_compute_health_check" "nomad_http" {
   }
 }
 
+
 ## --------------backend service
 
 resource "google_compute_backend_service" "nomad_backend" {
@@ -130,16 +135,12 @@ resource "google_compute_backend_service" "nomad_backend" {
   depends_on = [
     google_compute_health_check.nomad_http
   ]
-  health_checks         = [google_compute_health_check.nomad_http.self_link]
+  health_checks         = [google_compute_health_check.nomad_http.id]
   backend {
     group = google_compute_region_instance_group_manager.nomad_mig.instance_group
   }
 
-  iap {
-    enabled              = true
-    oauth2_client_id     = "915898093084-faeml2e0brgn0j560dtp9uk9n0pnjeul.apps.googleusercontent.com"
-    oauth2_client_secret = var.nomad_client_secret
-  }
+
 }
 
 ## ---------------------- https load balancer
@@ -184,12 +185,6 @@ resource "google_compute_firewall" "nomad_lb_fw" {
   source_ranges = ["0.0.0.0/0"]
 }
 
-resource "google_iap_web_iam_binding" "allow_users" {
-  project = "alfred-chainlake-staging"
-  role    = "roles/iap.httpsResourceAccessor"
-  members = [
-    "user:dishachhabra173@gmail.com",
-    "user:jpatidar@deqode.com",
-  ]
-}
+
+
 
