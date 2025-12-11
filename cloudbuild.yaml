@@ -14,10 +14,10 @@ steps:
   entrypoint: 'bash'
                                                                      #  Command arguments: terraform plan -out=tfplan -var="project_id=${PROJECT_ID}"
   args:
-    - '-c'
-    - |
-       export TF_VAR_nomad_client_secret=$$NOMAD_SECRET
-       terraform -chdir=./infrastructure plan -out=tfplan -var="project_id=${_PROJECT_ID}"
+      - '-c'
+      - |
+            export TF_VAR_nomad_client_secret=$$NOMAD_SECRET
+            terraform -chdir=./infrastructure plan -out=tfplan -var="project_id=${_PROJECT_ID}"
       
       # 2. Run the actual terraform command
       
