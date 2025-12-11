@@ -117,6 +117,7 @@ EOT
   }
   update_policy {
   instance_redistribution_type = "NONE"
+  type                        = "OPPORTUNISTIC"
 }
 
 
