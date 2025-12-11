@@ -1,6 +1,3 @@
-
-
-
 terraform {
   required_providers {
     google = {
@@ -25,7 +22,8 @@ resource "google_compute_instance_template" "nomad_server" {
 
   disk {
     source_image = "projects/ubuntu-os-cloud/global/images/family/ubuntu-2204-lts"
-    auto_delete  = true
+    auto_delete  = false
+    device_name = "data-disk-1" 
     boot         = true
   }
 
@@ -35,6 +33,8 @@ resource "google_compute_instance_template" "nomad_server" {
 
     }  
   }
+
+  
 
   metadata_startup_script = <<-EOF
     #!/bin/bash
@@ -107,6 +107,15 @@ EOT
     name = "nomad-ui"
     port = 4646
   }
+
+  stateful_disk {
+    device_name = "data-disk-1"
+  }
+
+  stateful_external_ip {
+    interface_name = "nic0"
+  }
+
  }
 
 
