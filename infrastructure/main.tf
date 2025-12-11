@@ -18,7 +18,7 @@ provider "google" {
 resource "google_compute_instance_template" "nomad_server" {
   name_prefix   = "nomad-server-template"
   machine_type  = "e2-medium"
-  zone               = "us-central1-a" 
+  region              = "us-central1" 
 
   disk {
     source      = google_compute_region_disk.data_disk.self_link
