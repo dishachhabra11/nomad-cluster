@@ -18,10 +18,10 @@ provider "google" {
 resource "google_compute_instance_template" "nomad_server" {
   name_prefix   = "nomad-server-template"
   machine_type  = "e2-medium"
-  region        = "us-central1"
+  zone               = "us-central1-a" 
 
   disk {
-    source_image = "projects/ubuntu-os-cloud/global/images/family/ubuntu-2204-lts"
+    source      = google_compute_region_disk.data_disk.self_link
     auto_delete  = false
     device_name = "data-disk-1" 
     boot         = true
@@ -115,6 +115,10 @@ EOT
   stateful_external_ip {
     interface_name = "nic0"
   }
+  update_policy {
+  instance_redistribution_type = "NONE"
+}
+
 
  }
 
@@ -193,6 +197,16 @@ resource "google_compute_firewall" "nomad_lb_fw" {
 
   source_ranges = ["0.0.0.0/0"]
 }
+
+
+## -------------------- disk
+disk {
+  source      = google_compute_region_disk.data_disk.self_link
+  device_name = "data-disk-1"
+  boot        = true
+  auto_delete = false
+}
+
 
 
 
