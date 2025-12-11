@@ -113,7 +113,7 @@ resource "google_compute_health_check" "nomad_http" {
 
   http_health_check {
     port = 4646
-    request_path = "/"
+    request_path = "/v1/agent/self"
   }
 }
 
