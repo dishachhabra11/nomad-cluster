@@ -200,11 +200,11 @@ resource "google_compute_firewall" "nomad_lb_fw" {
 
 
 ## -------------------- disk
-disk {
-  source      = google_compute_region_disk.data_disk.self_link
-  device_name = "data-disk-1"
-  boot        = true
-  auto_delete = false
+resource "google_compute_region_disk" "data_disk" {
+  name   = "data-disk-1"
+  region = "us-central1"
+  size   = 50
+  type   = "pd-balanced"
 }
 
 
