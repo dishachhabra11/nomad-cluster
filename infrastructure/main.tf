@@ -18,12 +18,11 @@ provider "google" {
 resource "google_compute_instance_template" "nomad_server" {
   name_prefix   = "nomad-server-template"
   machine_type  = "e2-medium"
-  region              = "us-central1" 
+  region        = "us-central1"
 
   disk {
-    source      = google_compute_region_disk.data_disk.self_link
-    auto_delete  = false
-    device_name = "data-disk-1" 
+    source_image = "projects/ubuntu-os-cloud/global/images/family/ubuntu-2204-lts"
+    auto_delete  = true
     boot         = true
   }
 
@@ -31,10 +30,8 @@ resource "google_compute_instance_template" "nomad_server" {
     network = "default"
     access_config {
 
-    }  
+    }  # Gives external IP
   }
-
-  
 
   metadata_startup_script = <<-EOF
     #!/bin/bash
@@ -89,8 +86,6 @@ EOT
 ## --------------------------------------------------------------------------------------------------
 ## 3. Managed Instance Group (MIG)
 ## --------------------------------------------------------------------------------------------------
-
-
  resource "google_compute_region_instance_group_manager" "nomad_mig" {
   name               = "nomad-mig"
   region             = "us-central1"
@@ -107,26 +102,9 @@ EOT
     name = "nomad-ui"
     port = 4646
   }
-
-  stateful_disk {
-    device_name = "data-disk-1"
-  }
-
-  stateful_external_ip {
-    interface_name = "nic0"
-  }
-update_policy {
-  type                        = "OPPORTUNISTIC"
-  minimal_action              = "RESTART"
-  max_surge_fixed             = 0
-  max_unavailable_fixed       = 1
-  instance_redistribution_type = "NONE"
 }
 
-
-
- }
-
+## ------------- health ceck for load balancer 
 
 resource "google_compute_health_check" "nomad_http" {
   name               = "nomad-http-hc"
@@ -140,7 +118,6 @@ resource "google_compute_health_check" "nomad_http" {
     request_path = "/v1/agent/self"
   }
 }
-
 
 ## --------------backend service
 
@@ -157,9 +134,11 @@ resource "google_compute_backend_service" "nomad_backend" {
   backend {
     group = google_compute_region_instance_group_manager.nomad_mig.instance_group
   }
-
-
 }
+
+
+
+
 
 ## ---------------------- https load balancer
 
@@ -198,26 +177,5 @@ resource "google_compute_firewall" "nomad_lb_fw" {
     ports    = ["4646"]
   }
 
-## should be load balancer ip 
-
   source_ranges = ["0.0.0.0/0"]
 }
-
-
-## -------------------- disk
-resource "google_compute_region_disk" "data_disk" {
-  name   = "data-disk-1"
-  region = "us-central1"
-  size   = 50
-  type   = "pd-balanced"
-
-   replica_zones = [
-    "us-central1-a",
-    "us-central1-b"
-  ]
-}
-
-
-
-
-
