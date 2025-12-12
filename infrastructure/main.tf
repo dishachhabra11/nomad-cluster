@@ -142,11 +142,17 @@ resource "google_compute_backend_service" "nomad_backend" {
   }
 }
 
+## ----------------------  ssl_certificates
+
+data "google_compute_ssl_certificate" "existing_cert" {
+  name = "nomad-cert"
+}
 
 
 
 
-## ---------------------- http load balancer
+
+## ---------------------- https load balancer
 
 
 resource "google_compute_url_map" "nomad_lb_urlmap" {
@@ -157,10 +163,10 @@ resource "google_compute_url_map" "nomad_lb_urlmap" {
   ]
 }
 
-resource "google_compute_target_http_proxy" "nomad_lb_proxy" {
+resource "google_compute_target_https_proxy" "nomad_lb_proxy" {
   name    = "nomad-lb-proxy"
   url_map = google_compute_url_map.nomad_lb_urlmap.self_link
-  ## ssl_certificates = [google_compute_managed_ssl_certificate.cert.self_link]
+  ssl_certificates = [data.google_compute_ssl_certificate.existing_cert.self_link]
     depends_on = [
      google_compute_url_map.nomad_lb_urlmap
   ]
@@ -168,8 +174,8 @@ resource "google_compute_target_http_proxy" "nomad_lb_proxy" {
 
 resource "google_compute_global_forwarding_rule" "nomad_lb_forwarding" {
   name       = "nomad-lb-forwarding"
-  port_range = "80"
-  target     = google_compute_target_http_proxy.nomad_lb_proxy.self_link
+  port_range = "443"
+  target     = google_compute_target_https_proxy.nomad_lb_proxy.self_link
   ip_address = google_compute_global_address.lb_ip.address
 }
 
