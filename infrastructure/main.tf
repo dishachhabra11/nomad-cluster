@@ -161,7 +161,7 @@ resource "google_compute_managed_ssl_certificate" "nomad-cert-new" {
 ## ---------------------- https load balancer
 
 
-data "google_compute_url_map" "nomad_lb_urlmap" {
+resource "google_compute_url_map" "nomad_lb_urlmap" {
   name            = "nomad-lb-urlmap"
   default_service = google_compute_backend_service.nomad_backend.self_link
    depends_on = [
