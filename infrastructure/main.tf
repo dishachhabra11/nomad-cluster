@@ -147,7 +147,7 @@ resource "google_compute_backend_service" "nomad_backend" {
 resource "google_compute_managed_ssl_certificate" "nomad_cert_new" { 
   
   # This is the name used in GCP, which is now managed by Terraform
-  name = "nomad-cert" 
+  name = "nomad-cert-new" 
   
   managed {
     domains = ["nomadServer.chainlake.net"] 
