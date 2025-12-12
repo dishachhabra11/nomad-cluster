@@ -173,7 +173,8 @@ resource "google_compute_url_map" "nomad_lb_urlmap" {
 resource "google_compute_target_https_proxy" "nomad_lb_proxy" {
   name    = "nomad-lb-proxy"
   url_map = google_compute_url_map.nomad_lb_urlmap.self_link
-  ssl_certificates = [google_compute_ssl_certificate.nomad_cert_new.self_link]
+  ssl_certificates = [google_compute_managed_ssl_certificate.nomad_cert_new.self_link
+]
     depends_on = [
      google_compute_url_map.nomad_lb_urlmap
   ]
