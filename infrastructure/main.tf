@@ -134,13 +134,19 @@ resource "google_compute_backend_service" "nomad_backend" {
   backend {
     group = google_compute_region_instance_group_manager.nomad_mig.instance_group
   }
+
+   iap {
+    enabled              = true
+    oauth2_client_id     = "915898093084-faeml2e0brgn0j560dtp9uk9n0pnjeul.apps.googleusercontent.com"
+    oauth2_client_secret = data.google_secret_manager_secret_version.iap_secret.secret_data
+  }
 }
 
 
 
 
 
-## ---------------------- https load balancer
+## ---------------------- http load balancer
 
 
 resource "google_compute_url_map" "nomad_lb_urlmap" {
@@ -154,6 +160,7 @@ resource "google_compute_url_map" "nomad_lb_urlmap" {
 resource "google_compute_target_http_proxy" "nomad_lb_proxy" {
   name    = "nomad-lb-proxy"
   url_map = google_compute_url_map.nomad_lb_urlmap.self_link
+  ## ssl_certificates = [google_compute_managed_ssl_certificate.cert.self_link]
     depends_on = [
      google_compute_url_map.nomad_lb_urlmap
   ]
@@ -163,7 +170,10 @@ resource "google_compute_global_forwarding_rule" "nomad_lb_forwarding" {
   name       = "nomad-lb-forwarding"
   port_range = "80"
   target     = google_compute_target_http_proxy.nomad_lb_proxy.self_link
+  ip_address = google_compute_global_address.lb_ip.address
 }
+
+###--------------------------
 
 
 ## ----------------------------- firewall
@@ -178,4 +188,16 @@ resource "google_compute_firewall" "nomad_lb_fw" {
   }
 
   source_ranges = ["0.0.0.0/0"]
+}
+
+
+data "google_secret_manager_secret_version" "iap_secret" {
+  secret  = "nomad_oath_client_secret"
+  version = "latest"
+}
+
+###------------- load balancer ip address
+
+resource "google_compute_global_address" "lb_ip" {
+  name = "web-lb-static-ip"
 }
