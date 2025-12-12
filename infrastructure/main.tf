@@ -216,3 +216,18 @@ resource "google_compute_global_address" "lb_ip" {
   address_type = "EXTERNAL"
   ip_version   = "IPV4"
 }
+
+data "google_iam_policy" "iap_policy" {
+  binding {
+    role = "roles/iap.httpsResourceAccessor"
+    members = [
+      "user:dishachhabra173@gmail.com"
+    ]
+  }
+}
+
+resource "google_iap_web_backend_service_iam_policy" "iap_access" {
+  
+  web_backend_service = google_compute_backend_service.nomad_backend.name
+  policy_data         = data.google_iam_policy.iap_policy.policy_data
+}
