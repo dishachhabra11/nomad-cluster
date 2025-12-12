@@ -202,5 +202,4 @@ resource "google_compute_global_address" "lb_ip" {
   name = "web-lb-static-ip"
   address_type = "EXTERNAL"
   ip_version   = "IPV4"
-  network_tier = "PREMIUM"
 }
