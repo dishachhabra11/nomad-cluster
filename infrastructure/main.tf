@@ -144,7 +144,7 @@ resource "google_compute_backend_service" "nomad_backend" {
 
 ## ----------------------  ssl_certificates
 
-resource "google_compute_managed_ssl_certificate" "nomad_cert_new" { 
+resource "google_compute_managed_ssl_certificate" "nomad_cert_01" { 
   
   # This is the name used in GCP, which is now managed by Terraform
   name = "nomad-cert-new" 
