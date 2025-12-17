@@ -160,7 +160,6 @@ resource "google_compute_firewall" "allow_lb_to_nomad" {
   }
 
   source_ranges = [
-    "34.160.118.115:443",
     "0.0.0.0/0"
   ]
 }
