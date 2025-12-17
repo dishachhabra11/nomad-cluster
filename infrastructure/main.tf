@@ -58,6 +58,14 @@ ui {
 
 bind_addr = "0.0.0.0"
 data_dir = "/opt/nomad/data"
+
+telemetry {
+  collection_interval        = "10s"
+  prometheus_metrics         = true
+  publish_allocation_metrics = true
+  publish_node_metrics       = true
+}
+
 EOT
 
     mkdir -p /opt/nomad/data
@@ -86,113 +94,64 @@ EOT
 ## --------------------------------------------------------------------------------------------------
 ## 3. Managed Instance Group (MIG)
 ## --------------------------------------------------------------------------------------------------
- resource "google_compute_region_instance_group_manager" "nomad_mig" {
+ resource "google_compute_instance_group_manager" "nomad_mig" {
   name               = "nomad-mig"
-  region             = "us-central1"
+  zone               = "us-central1-a"
+  base_instance_name = "nomad"
+  target_size        = 1
+
   version {
     instance_template = google_compute_instance_template.nomad_server.self_link
   }
-  base_instance_name = "nomad"
-  target_size        = 1
-  auto_healing_policies {
-    health_check      = google_compute_health_check.nomad_http.self_link
-    initial_delay_sec = 300
-  }
+
   named_port {
     name = "nomad-ui"
     port = 4646
   }
 }
 
+
 ## ------------- health ceck for load balancer 
 
 resource "google_compute_health_check" "nomad_http" {
-  name               = "nomad-http-hc"
-  check_interval_sec = 10
-  timeout_sec        = 5
-  healthy_threshold  = 1
-  unhealthy_threshold= 3
+  name = "nomad-hc"
 
   http_health_check {
-    port = 4646
-    request_path = "/v1/agent/self"
+    port         = 4646
+    request_path = "/ui/"
   }
 }
+
 
 ## --------------backend service
 
+
+
 resource "google_compute_backend_service" "nomad_backend" {
-  name                  = "nomad-backend-test"
-  protocol              = "HTTP"
-  timeout_sec           = 10
-  enable_cdn            = false
-  port_name             = "nomad-ui"
-  depends_on = [
-    google_compute_health_check.nomad_http
+  name        = "nomad-backend"
+  protocol    = "HTTP"
+  port_name  = "nomad-ui"
+  timeout_sec = 10
+
+  health_checks = [
+    google_compute_health_check.nomad_http.id
   ]
-  health_checks         = [google_compute_health_check.nomad_http.id]
+
   backend {
-    group = google_compute_region_instance_group_manager.nomad_mig.instance_group
-  }
-
-   iap {
-    enabled              = true
-    oauth2_client_id     = "915898093084-faeml2e0brgn0j560dtp9uk9n0pnjeul.apps.googleusercontent.com"
-    oauth2_client_secret = data.google_secret_manager_secret_version.iap_secret.secret_data
-  }
-}
-
-## ----------------------  ssl_certificates
-
-resource "google_compute_managed_ssl_certificate" "nomad-cert-new" { 
-  
-  # This is the name used in GCP, which is now managed by Terraform
-  name = "nomad-cert-new" 
-  
-  managed {
-    domains = ["nomadServer.chainlake.net"] 
+    group = google_compute_instance_group_manager.nomad_mig.instance_group
   }
 }
 
 
 
-
-
-## ---------------------- https load balancer
-
-
-resource "google_compute_url_map" "nomad_lb_urlmap" {
-  name            = "nomad-lb-urlmap"
-  default_service = google_compute_backend_service.nomad_backend.self_link
-   depends_on = [
-    google_compute_backend_service.nomad_backend
-  ]
-}
-
-resource "google_compute_target_https_proxy" "nomad_lb_proxy" {
-  name    = "nomad-lb-proxy"
-  url_map = google_compute_url_map.nomad_lb_urlmap.self_link
-  ssl_certificates = [google_compute_managed_ssl_certificate.nomad-cert-new.self_link
-]
-    depends_on = [
-     google_compute_url_map.nomad_lb_urlmap
-  ]
-}
-
-resource "google_compute_global_forwarding_rule" "nomad_lb_forwarding" {
-  name       = "nomad-lb-forwarding"
-  port_range = "443"
-  target     = google_compute_target_https_proxy.nomad_lb_proxy.self_link
-  ip_address = google_compute_global_address.lb_ip.address
-}
 
 ###--------------------------
 
 
 ## ----------------------------- firewall
 
-resource "google_compute_firewall" "nomad_lb_fw" {
-  name    = "nomad-lb-fw"
+resource "google_compute_firewall" "allow_lb_to_nomad" {
+  name    = "allow-lb-nomad"
   network = "default"
 
   allow {
@@ -200,34 +159,11 @@ resource "google_compute_firewall" "nomad_lb_fw" {
     ports    = ["4646"]
   }
 
-  source_ranges = ["0.0.0.0/0"]
+  source_ranges = [
+    "34.160.118.115:443",
+    "0.0.0.0/0"
+  ]
 }
 
 
-data "google_secret_manager_secret_version" "iap_secret" {
-  secret  = "nomad_oath_client_secret"
-  version = "latest"
-}
 
-###------------- load balancer ip address
-
-resource "google_compute_global_address" "lb_ip" {
-  name = "web-lb-static-ip"
-  address_type = "EXTERNAL"
-  ip_version   = "IPV4"
-}
-
-data "google_iam_policy" "iap_policy" {
-  binding {
-    role = "roles/iap.httpsResourceAccessor"
-    members = [
-      "user:dishachhabra173@gmail.com"
-    ]
-  }
-}
-
-resource "google_iap_web_backend_service_iam_policy" "iap_access" {
-  
-  web_backend_service = google_compute_backend_service.nomad_backend.name
-  policy_data         = data.google_iam_policy.iap_policy.policy_data
-}
