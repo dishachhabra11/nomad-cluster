@@ -165,18 +165,19 @@ resource "nomad_job" "greptime" {
 
 ## ------------ nomad client instance_template
 
-resource "google_compute_instance_template" nomad-client-instance-template {
+resource "google_compute_instance_template" "nomad-client-instance-template" {
 
   name_prefix = "nomad-client"
   machine_type  = "e2-medium"
   region        = "us-central1"
 
   disk{
-   source = google_compute_disk.greptime_disk.self_link
+   source = google_compute_region_disk.greptime_disk.name
    auto_delete = false
   }
 
   tags = ["nomad-client"]
+
   network_interface {
     network= "default"
     access_config {
@@ -197,6 +198,8 @@ resource "google_compute_instance_template" nomad-client-instance-template {
     chmod 777 /etc/nomad.d
 
     cat <<EOT > /etc/nomad.d/client.hcl
+
+
 client {
   enabled = true
   # Join the server
@@ -207,6 +210,8 @@ client {
     # replace with server private IP or DNS
   }
 }
+
+region        = "us-central1"
 
 bind_addr = "0.0.0.0"
 data_dir  = "/opt/nomad/data"
@@ -242,13 +247,18 @@ EOT
 ## ------------ greptime db volume 
 
 
-resource "google_compute_disk" "greptime_disk" {
-  name  = "greptime-data-disk"
-  type  = "pd-standard"
-  zone  = "us-central1-a"
-  size  = 10  # GB
+resource "google_compute_region_disk" "greptime_disk" {
+  name          = "my-regional-disk"
+  type          = "pd-balanced"
+  region        = "us-central1"
+  size          = 10
+  
+  # You must provide exactly two zones within the region
+  replica_zones = [
+    "us-central1-a",
+    "us-central1-f"
+  ]
 }
-
 
 
 
