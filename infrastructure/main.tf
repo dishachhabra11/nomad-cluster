@@ -30,7 +30,7 @@ resource "google_compute_instance_template" "nomad_server" {
     network = "default"
     access_config {
 
-    }  # Gives external IP
+    }  # Gives external IP (ephemeral)
   }
 
   metadata_startup_script = <<-EOF
@@ -147,6 +147,95 @@ resource "google_compute_firewall" "allow_lb_to_nomad" {
     "0.0.0.0/0"
   ]
 }
+
+##----------  greptime job 
+
+resource "nomad_job" "greptime" {
+  jobspec = file("${path.module}/jobs/greptime.nomad.hcl")
+}
+
+## ------------ nomad client instance_template
+
+resource "google_compute_instance_template" nomad-client-instance-template {
+
+  name_prefix = "nomad-client"
+  machine_type  = "e2-medium"
+  region        = "us-central1"
+
+  disk{
+   source = "google_compute_disk.greptime_disk.self_link"
+   auto_delete = false
+  }
+  network_interface {
+    network= "default"
+    access_config {
+    }
+  }
+
+    metadata_startup_script = <<-EOF
+    #!/bin/bash
+    apt update -y && apt upgrade -y
+    apt install -y unzip curl
+
+    curl -O https://releases.hashicorp.com/nomad/1.7.6/nomad_1.7.6_linux_amd64.zip
+    unzip nomad_1.7.6_linux_amd64.zip
+    mv nomad /usr/local/bin/
+    chmod +x /usr/local/bin/nomad
+
+    mkdir -p /etc/nomad.d
+    chmod 777 /etc/nomad.d
+
+    cat <<EOT > /etc/nomad.d/client.hcl
+client {
+  enabled = true
+  # Join the server
+  server_join {
+    retry_join = ["10.128.0.11/4646"] 
+    # replace with server private IP or DNS
+  }
+}
+
+bind_addr = "0.0.0.0"
+data_dir  = "/opt/nomad/data"
+EOT
+
+    mkdir -p /opt/nomad/data
+    chmod 777 /opt/nomad/data
+
+    cat <<EOT > /etc/systemd/system/nomad.service
+[Unit]
+Description=Nomad Client
+After=network.target
+
+[Service]
+ExecStart=/usr/local/bin/nomad agent -config=/etc/nomad.d
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+EOT
+
+    systemctl daemon-reload
+    systemctl enable nomad
+    systemctl start nomad
+  EOF
+
+
+
+}
+
+
+
+## ------------ greptime db volume 
+
+
+resource "google_compute_disk" "greptime_disk" {
+  name  = "greptime-data-disk"
+  type  = "pd-standard"
+  zone  = "us-central1-a"
+  size  = 100  # GB
+}
+
 
 
 
