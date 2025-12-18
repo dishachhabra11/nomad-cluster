@@ -173,6 +173,12 @@ resource "google_compute_instance_template" "nomad-client-instance-template" {
   machine_type  = "e2-medium"
   region        = "us-central1"
 
+  disk {
+    source_image = "projects/ubuntu-os-cloud/global/images/family/ubuntu-2204-lts"
+    auto_delete  = true
+    boot         = true
+  }
+
   disk{
    source = google_compute_region_disk.greptime_disk.name
    auto_delete = false
