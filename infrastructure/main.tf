@@ -152,7 +152,7 @@ resource "google_compute_firewall" "allow_lb_to_nomad" {
     protocol = "tcp"
     ports    = ["4646"]
   }
-  tags = ["nomad_server]
+  tags = ["nomad_server"]
 
   source_ranges = [
     "0.0.0.0/0"
