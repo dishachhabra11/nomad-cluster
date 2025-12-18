@@ -258,7 +258,9 @@ resource "google_compute_region_disk" "greptime_disk" {
   # You must provide exactly two zones within the region
   replica_zones = [
     "us-central1-a",
-    "us-central1-f"
+    "us-central1-f",
+    "us-central1-b",
+    "us-central1-c"
   ]
 }
 
