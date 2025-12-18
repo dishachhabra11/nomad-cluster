@@ -214,7 +214,7 @@ client {
 
 
   server_join {
-     retry_join = ["10.128.0.13/4646"]
+     retry_join = ["10.128.0.13"]
     # replace with server private IP or DNS
   }
 }
