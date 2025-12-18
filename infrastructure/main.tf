@@ -277,11 +277,6 @@ resource "google_compute_region_instance_group_manager" "nomad_mig" {
     instance_template = google_compute_instance_template.nomad_server.self_link
   }
 
-  distribution_policy_zones      = [
-    "us-central1-a",
-    "us-central1-f"
-  ]
-
   base_instance_name = "nomad"
   target_size        = 1
   
@@ -298,6 +293,11 @@ resource "google_compute_region_instance_group_manager" "nomad_mig_client" {
     instance_template = google_compute_instance_template.nomad-client-instance-template.self_link
   }
   base_instance_name = "nomad-client"
+
+  distribution_policy_zones      = [
+    "us-central1-a",
+    "us-central1-f"
+  ]
   target_size        = 1
   
   named_port {
