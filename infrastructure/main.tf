@@ -127,7 +127,7 @@ resource "google_compute_health_check" "nomad_http" {
 ## ----------------------------- firewall
 
 resource "google_compute_firewall" "allow_lb_to_nomad" {
-  name    = "allow-lb-nomad"
+  name    = "allow-lb-nomad-server"
   network = "default"
 
   allow {
