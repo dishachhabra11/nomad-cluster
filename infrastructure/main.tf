@@ -67,6 +67,10 @@ ui {
   enabled = true
 }
 
+consul {
+  enabled = false
+}
+
 bind_addr = "0.0.0.0"
 data_dir = "/opt/nomad/data"
 
@@ -218,6 +222,12 @@ client {
     # replace with server private IP or DNS
   }
 }
+
+consul {
+  enabled = false
+}
+
+
 
 region        = "us-central1"
 
