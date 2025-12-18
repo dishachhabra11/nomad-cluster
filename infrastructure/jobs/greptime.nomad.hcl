@@ -5,6 +5,12 @@ job "greptimedb" {
   group "db" {
     count = 1
 
+    network {
+        port "http" {
+          static = 4000
+        }
+      }
+
     task "greptimedb" {
       driver = "docker"
 
@@ -19,11 +25,6 @@ job "greptimedb" {
         memory = 1024
       }
 
-      network {
-        port "http" {
-          static = 4000
-        }
-      }
     }
   }
 }
