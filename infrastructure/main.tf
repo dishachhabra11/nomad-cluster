@@ -16,10 +16,11 @@ provider "google" {
   region  = "us-central1"
 }
 
-provider "nomad" {
+/* provider "nomad" {
   address = "http://34.72.43.127:4646"
-  region  = "us-east-2"
+  region  = "us-central1"
 }
+*/
 
 ## --------------------------------------------------------------------------------------------------
 ## 2. Nomad Instance Template (for MIG)\
@@ -158,10 +159,11 @@ resource "google_compute_firewall" "client_firewall" {
 }
 
 ##----------  greptime job 
-
+/*
 resource "nomad_job" "greptime" {
   jobspec = file("${path.module}/jobs/greptime.nomad.hcl")
 }
+*/
 
 ## ------------ nomad client instance_template
 
