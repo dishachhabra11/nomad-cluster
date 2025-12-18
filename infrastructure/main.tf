@@ -263,4 +263,36 @@ resource "google_compute_region_disk" "greptime_disk" {
 }
 
 
+##-------- instacne group maanager
+resource "google_compute_region_instance_group_manager" "nomad_mig" {
+  name               = "nomad-mig"
+  region             = "us-central1"
+  version {
+    instance_template = google_compute_instance_template.nomad_server.self_link
+  }
+  base_instance_name = "nomad"
+  target_size        = 1
+  
+  named_port {
+    name = "nomad-ui"
+    port = 4646
+  }
+}
+
+resource "google_compute_region_instance_group_manager" "nomad_mig_client" {
+  name               = "nomad-mig"
+  region             = "us-central1"
+  version {
+    instance_template = google_compute_instance_template.nomad-client-instance-template.self_link
+  }
+  base_instance_name = "nomad-client"
+  target_size        = 1
+  
+  named_port {
+    name = "nomad-ui-client"
+    port = 4646
+  }
+}
+
+
 
