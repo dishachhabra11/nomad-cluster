@@ -136,7 +136,12 @@ resource "google_compute_firewall" "allow_lb_to_nomad" {
 
   allow {
     protocol = "tcp"
-    ports    = ["4646", "4647"]
+    ports    = ["4646", "4647" , "4648"]
+  }
+
+  allow {
+    protocol = "udp"
+    ports    = ["4647"]
   }
 
   target_tags = ["nomad-server"]
