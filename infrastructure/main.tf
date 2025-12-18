@@ -180,8 +180,8 @@ resource "google_compute_instance_template" "nomad-client-instance-template" {
   }
 
   disk{
-   source = google_compute_region_disk.greptime_disk.name
-   auto_delete = false
+   source = google_compute_region_disk.greptime_disk.self_link
+   auto_delete = true
   }
 
   tags = ["nomad-client"]
@@ -246,7 +246,7 @@ EOT
     systemctl start nomad
   EOF
 
-
+depends_on = [google_compute_region_disk.greptime_disk]
 
 }
 
