@@ -167,7 +167,7 @@ resource "nomad_job" "greptime" {
 
 ## ------------ nomad client instance_template
 
-resource "google_compute_instance_template" "nomad-client-instance-template" {
+resource "google_compute_instance_template" "nomad-client-instance-template1" {
 
   name_prefix = "nomad-client"
   machine_type  = "e2-medium"
@@ -290,7 +290,7 @@ resource "google_compute_region_instance_group_manager" "nomad_mig_client" {
   name               = "nomad-mig-client"
   region             = "us-central1"
   version {
-    instance_template = google_compute_instance_template.nomad-client-instance-template.self_link
+    instance_template = google_compute_instance_template.nomad-client-instance-template1.self_link
   }
   base_instance_name = "nomad-client"
 
