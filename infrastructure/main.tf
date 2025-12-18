@@ -280,7 +280,7 @@ resource "google_compute_region_instance_group_manager" "nomad_mig" {
 }
 
 resource "google_compute_region_instance_group_manager" "nomad_mig_client" {
-  name               = "nomad-mig"
+  name               = "nomad-mig-client"
   region             = "us-central1"
   version {
     instance_template = google_compute_instance_template.nomad-client-instance-template.self_link
