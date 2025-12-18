@@ -172,7 +172,7 @@ resource "google_compute_instance_template" nomad-client-instance-template {
   region        = "us-central1"
 
   disk{
-   source = "google_compute_disk.greptime_disk.self_link"
+   source = "google_compute_disk.greptime_disk.name"
    auto_delete = false
   }
   network_interface {
@@ -199,7 +199,7 @@ client {
   enabled = true
   # Join the server
   server_join {
-    retry_join = ["10.128.0.11/4646"] 
+    retry_join = ["34.72.43.127/4646"] 
     # replace with server private IP or DNS
   }
 }
