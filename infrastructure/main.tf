@@ -101,25 +101,6 @@ EOT
 }
 
 
-## --------------------------------------------------------------------------------------------------
-## 3. Managed Instance Group (MIG)
-## --------------------------------------------------------------------------------------------------
- resource "google_compute_instance_group_manager" "nomad_mig" {
-  name               = "nomad-mig"
-  zone               = "us-central1-a"
-  base_instance_name = "nomad"
-  target_size        = 1
-
-  version {
-    instance_template = google_compute_instance_template.nomad_server.self_link
-  }
-
-  named_port {
-    name = "nomad-ui"
-    port = 4646
-  }
-}
-
 
 ## ------------- health ceck for load balancer 
 
