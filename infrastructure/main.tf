@@ -259,8 +259,6 @@ resource "google_compute_region_disk" "greptime_disk" {
   replica_zones = [
     "us-central1-a",
     "us-central1-f",
-    "us-central1-b",
-    "us-central1-c"
   ]
 }
 
@@ -272,6 +270,12 @@ resource "google_compute_region_instance_group_manager" "nomad_mig" {
   version {
     instance_template = google_compute_instance_template.nomad_server.self_link
   }
+
+  target_zones       = [
+    "us-central1-a",
+    "us-central1-f"
+  ]
+
   base_instance_name = "nomad"
   target_size        = 1
   
