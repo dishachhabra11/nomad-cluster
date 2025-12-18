@@ -17,7 +17,7 @@ provider "google" {
 }
 
 provider "nomad" {
-  address = "http://10.128.0.11:4646"
+  address = "http://34.72.43.127:4646"
   region  = "us-east-2"
 }
 
@@ -134,7 +134,7 @@ resource "google_compute_firewall" "allow_lb_to_nomad" {
     ports    = ["4646", "4647"]
   }
 
-  target_tags = ["nomad_server"]
+  target_tags = ["nomad-server"]
 
   source_ranges = [
     "0.0.0.0/0"
