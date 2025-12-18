@@ -264,7 +264,7 @@ resource "google_compute_region_disk" "greptime_disk" {
   # You must provide exactly two zones within the region
   replica_zones = [
     "us-central1-a",
-    "us-central1-f",
+    "us-central1-f"
   ]
 }
 
@@ -304,6 +304,7 @@ resource "google_compute_region_instance_group_manager" "nomad_mig_client" {
     name = "nomad-ui-client"
     port = 4646
   }
+  depends_on = [google_compute_region_disk.greptime_disk]
 }
 
 
