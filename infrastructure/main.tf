@@ -214,7 +214,7 @@ client {
 
 
   server_join {
-     retry_join = ["provider=gce tag_value=nomad-server"]
+     retry_join = ["10.128.0.13/4646"]
     # replace with server private IP or DNS
   }
 }
