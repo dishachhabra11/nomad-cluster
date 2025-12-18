@@ -150,9 +150,26 @@ resource "google_compute_firewall" "allow_lb_to_nomad" {
 
   allow {
     protocol = "tcp"
+    ports    = ["4646", "4647"]
+  }
+
+  target_tags = ["nomad_server"]
+
+  source_ranges = [
+    "0.0.0.0/0"
+  ]
+}
+
+resource "google_compute_firewall" "allow_lb_to_nomad" {
+  name    = "allow-lb-nomad"
+  network = "default"
+
+  allow {
+    protocol = "tcp"
     ports    = ["4646"]
   }
-  tags = ["nomad_server"]
+
+  target_tags = ["nomad-client"]
 
   source_ranges = [
     "0.0.0.0/0"
@@ -248,7 +265,7 @@ resource "google_compute_disk" "greptime_disk" {
   name  = "greptime-data-disk"
   type  = "pd-standard"
   zone  = "us-central1-a"
-  size  = 100  # GB
+  size  = 10  # GB
 }
 
 
