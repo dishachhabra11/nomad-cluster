@@ -143,7 +143,7 @@ resource "google_compute_firewall" "allow_lb_to_nomad" {
 }
 
 resource "google_compute_firewall" "client_firewall" {
-  name    = "allow-lb-nomad"
+  name    = "allow-lb-nomad-client"
   network = "default"
 
   allow {
