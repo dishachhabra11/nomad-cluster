@@ -4,12 +4,21 @@ terraform {
       source  = "hashicorp/google"
       version = "7.13.0"
     }
+    nomad = {
+      source  = "hashicorp/nomad"
+      version = "1.9.0"
+    }
   }
 }
 
 provider "google" {
   project = "alfred-chainlake-staging"
   region  = "us-central1"
+}
+
+provider "nomad" {
+  address = "http://10.128.0.11:4646"
+  region  = "us-east-2"
 }
 
 ## --------------------------------------------------------------------------------------------------
