@@ -34,6 +34,7 @@ resource "google_compute_instance_template" "nomad_server" {
     auto_delete  = true
     boot         = true
   }
+  tags = ["nomad-server"]
 
   network_interface {
     network = "default"
@@ -151,6 +152,7 @@ resource "google_compute_firewall" "allow_lb_to_nomad" {
     protocol = "tcp"
     ports    = ["4646"]
   }
+  tags = ["nomad_server]
 
   source_ranges = [
     "0.0.0.0/0"
@@ -172,9 +174,11 @@ resource "google_compute_instance_template" nomad-client-instance-template {
   region        = "us-central1"
 
   disk{
-   source = "google_compute_disk.greptime_disk.name"
+   source = google_compute_disk.greptime_disk.self_link
    auto_delete = false
   }
+
+  tags = ["nomad-client"]
   network_interface {
     network= "default"
     access_config {
@@ -198,8 +202,10 @@ resource "google_compute_instance_template" nomad-client-instance-template {
 client {
   enabled = true
   # Join the server
+
+
   server_join {
-    retry_join = ["34.72.43.127/4646"] 
+     retry_join = ["provider=gce tag_value=nomad-server"]
     # replace with server private IP or DNS
   }
 }
