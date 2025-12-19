@@ -210,17 +210,35 @@ resource "google_compute_instance_template" "nomad-client-instance-template1" {
 
     metadata_startup_script = <<-EOF
     #!/bin/bash
-    apt update -y && apt upgrade -y
-    apt install -y unzip curl
 
-    curl -O https://releases.hashicorp.com/nomad/1.7.6/nomad_1.7.6_linux_amd64.zip
-    unzip nomad_1.7.6_linux_amd64.zip
-    mv nomad /usr/local/bin/
-    chmod +x /usr/local/bin/nomad
+    # Install Docker FIRST
+sudo apt-get update
+sudo apt-get install -y ca-certificates curl gnupg
+sudo install -m 0755 -d /etc/apt/keyrings
+sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+sudo chmod a+r /etc/apt/keyrings/docker.asc
 
-    mkdir -p /etc/nomad.d
-    chmod 777 /etc/nomad.d
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 
+sudo apt-get update
+sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+sudo systemctl start docker
+sudo systemctl enable docker
+
+# THEN Nomad
+sudo apt update -y && apt upgrade -y
+sudo apt install -y unzip curl
+
+curl -O https://releases.hashicorp.com/nomad/1.7.6/nomad_1.7.6_linux_amd64.zip
+unzip nomad_1.7.6_linux_amd64.zip
+sudo mv nomad /usr/local/bin/
+sudo chmod +x /usr/local/bin/nomad
+
+sudo mkdir -p /etc/nomad.d
+sudo chmod 777 /etc/nomad.d
+
+
+    
     cat <<EOT > /etc/nomad.d/client.hcl
 
 
@@ -240,6 +258,8 @@ region = "us-central1"
 consul {
   enabled = false
 }
+
+drivers = ["docker"]
 
 
 bind_addr = "0.0.0.0"
