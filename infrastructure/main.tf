@@ -245,7 +245,7 @@ resource "google_compute_instance_template" "nomad-client-instance-template1" {
     fi
 
     # Set permissions for Nomad/Docker to write to it
-    chmod 777 $MOUNT_POINT
+    chmod 777 $MOUNT_POINT 
 
     # Install Docker FIRST
 sudo apt-get update
