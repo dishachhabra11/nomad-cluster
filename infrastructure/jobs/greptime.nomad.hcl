@@ -1,5 +1,5 @@
 job "greptimedb" {
-  datacenters = ["dc1"]
+  datacenters = ["us-central1"]
   type        = "service"
 
   group "db" {

@@ -195,10 +195,14 @@ resource "google_compute_instance_template" "nomad-client-instance-template1" {
     boot         = true
   }
 
-  disk{
-   source = google_compute_region_disk.greptime_disk.self_link
-   auto_delete = true
-  }
+ disk {
+  boot         = false
+  auto_delete  = true
+  type         = "pd-ssd"
+  disk_size_gb = 10  # Match your greptime_disk size
+  disk_type    = "pd-ssd"
+}
+
 
   tags = ["nomad-client"]
 
@@ -310,7 +314,9 @@ resource "google_compute_region_disk" "greptime_disk" {
 }
 
 
-##-------- instacne group maanager
+##-------- instance group maanager
+
+
 resource "google_compute_region_instance_group_manager" "nomad_mig" {
   name               = "nomad-mig"
   region             = "us-central1"
