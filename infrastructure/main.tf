@@ -18,7 +18,7 @@ provider "google" {
 
 
  provider "nomad" {
-  address = "http://35.239.126.208:4646"
+  address = "http://34.69.184.157:4646"
   region  = "us-central1"
 }
 
@@ -230,7 +230,7 @@ client {
 
 
   server_join {
-     retry_join = ["10.128.0.17"]
+     retry_join = ["10.128.0.21"]
     # replace with server private IP or DNS
   }
 }
