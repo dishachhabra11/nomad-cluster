@@ -11,6 +11,12 @@ job "greptimedb" {
         }
       }
 
+    volume "database-data" {
+      type   = "host"
+      source = "greptime" 
+      read_only = false
+    }
+
     task "greptimedb" {
       driver = "docker"
 
@@ -24,6 +30,13 @@ job "greptimedb" {
         cpu    = 500
         memory = 1024
       }
+
+    volume_mount {
+     volume      = "database-data"
+     destination = "/greptimedb"
+     read_only   = false
+}
+
 
     }
   }
