@@ -178,6 +178,10 @@ resource "nomad_job" "greptime" {
   jobspec = file("${path.module}/jobs/greptime.nomad.hcl")
 }
 
+resource "nomad_job" "prometheus" {
+  jobspec = file("${path.module}/jobs/prometheus.nomad.hcl")
+}
+
 
 
 
@@ -369,17 +373,12 @@ resource "google_compute_region_instance_group_manager" "nomad_mig_client" {
   }
   base_instance_name = "nomad-client"
 
-  distribution_policy_zones      = [
-    "us-central1-a",
-    "us-central1-f"
-  ]
-  target_size        = 1
+  target_size        = 2
   
   named_port {
     name = "nomad-ui-client"
     port = 4646
   }
-  depends_on = [google_compute_region_disk.greptime_disk]
 }
 
 
