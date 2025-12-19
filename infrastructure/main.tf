@@ -279,21 +279,13 @@ sudo chmod +x /usr/local/bin/nomad
 sudo mkdir -p /etc/nomad.d
 sudo chmod 755 /etc/nomad.d  # Fixed: was 777 (security issue)
 
+# Create main client.hcl (NO drivers/host_volume here)
 cat <<EOT > /etc/nomad.d/client.hcl
-
 client {
   enabled = true
-
   server_join {
     retry_join = ["10.128.0.21"]
   }
-
-  drivers = ["docker"]
-
-host_volume "greptime" {
-  path      = "/mnt/greptime"
-  read_only = false
-}
 }
 
 region = "us-central1" 
@@ -302,14 +294,29 @@ consul {
   enabled = false
 }
 
-
-
 bind_addr = "0.0.0.0"
 data_dir  = "/opt/nomad/data"
 EOT
 
+# Separate drivers file
+cat <<EOT > /etc/nomad.d/drivers.hcl
+client {
+  drivers = ["docker"]
+}
+EOT
+
+# Separate host_volume file  
+cat <<EOT > /etc/nomad.d/greptime-volume.hcl
+client {
+  host_volume "greptime" {
+    path      = "/mnt/greptime"
+    read_only = false
+  }
+}
+EOT
+
 mkdir -p /opt/nomad/data
-chmod 755 /opt/nomad/data  # Fixed: was 777
+chmod 755 /opt/nomad/data
 
 cat <<EOT > /etc/systemd/system/nomad.service
 [Unit]
@@ -330,6 +337,7 @@ systemctl enable nomad
 systemctl start nomad
 
 echo "Nomad client started with GreptimeDB volume at /mnt/greptime"
+
 
   EOF
 
