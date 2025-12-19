@@ -199,7 +199,7 @@ resource "google_compute_instance_template" "nomad-client-instance-template1" {
   boot         = false
   auto_delete  = true
   type         = "pd-ssd"
-  disk_size_gb = 10  # Match your greptime_disk size
+  disk_size_gb = 12  # Match your greptime_disk size
   disk_type    = "pd-ssd"
 }
 
