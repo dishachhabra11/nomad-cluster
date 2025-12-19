@@ -216,7 +216,38 @@ resource "google_compute_instance_template" "nomad-client-instance-template1" {
     metadata_startup_script = <<-EOF
     #!/bin/bash
 
-# Install Docker FIRST
+    # 1. DISK MOUNTING LOGIC
+    # Identify the secondary disk (usually persistent-disk-1 in GCP)
+    DISK_PATH="/dev/disk/by-id/google-persistent-disk-1"
+    MOUNT_POINT="/mnt/greptime"
+
+    # Wait for the device to be attached
+    while [ ! -b $DISK_PATH ]; do
+      echo "Waiting for disk $DISK_PATH..."
+      sleep 2
+    done
+
+    # Create mount point
+    mkdir -p $MOUNT_POINT
+
+    # Format the disk only if it doesn't have a file system (prevents data loss)
+    if [ -z "$(lsblk -f -n -o FSTYPE $DISK_PATH)" ]; then
+      echo "Formatting disk $DISK_PATH..."
+      mkfs.ext4 -m 0 -E lazy_itable_init=0,lazy_journal_init=0,discard $DISK_PATH
+    fi
+
+    # Mount the disk
+    mount -o discard,defaults $DISK_PATH $MOUNT_POINT
+
+    # Add to /etc/fstab so it mounts automatically on reboot
+    if ! grep -qs "$MOUNT_POINT" /etc/fstab; then
+      echo "$DISK_PATH $MOUNT_POINT ext4 discard,defaults,nofail 0 2" >> /etc/fstab
+    fi
+
+    # Set permissions for Nomad/Docker to write to it
+    chmod 777 $MOUNT_POINT
+
+    # Install Docker FIRST
 sudo apt-get update
 sudo apt-get install -y ca-certificates curl gnupg
 sudo install -m 0755 -d /etc/apt/keyrings
@@ -230,43 +261,6 @@ sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plug
 sudo systemctl start docker
 sudo systemctl enable docker
 
-# MOUNT GREPTIME DISK (NEW SECTION)
-DISK="/dev/sdb"
-MOUNT="/mnt/greptime"
-
-# Wait for disk to be available
-for i in {1..30}; do
-  if [ -b "$DISK" ]; then
-    echo "Disk $DISK found"
-    break
-  fi
-  echo "Waiting for $DISK... ($i/30)"
-  sleep 2
-done
-
-if [ ! -b "$DISK" ]; then
-  echo "ERROR: Disk $DISK not found - check template config"
-  exit 1
-fi
-
-# Format if empty (idempotent - skips if filesystem exists)
-if ! blkid "$DISK" > /dev/null 2>&1; then
-  echo "Formatting $DISK with ext4..."
-  sudo mkfs.ext4 -F "$DISK"
-fi
-
-# Create mount point, mount, and set permissions
-sudo mkdir -p "$MOUNT"
-sudo mount "$DISK" "$MOUNT"
-sudo chown -R 1000:1000 "$MOUNT"  # Docker/nomad user
-sudo chmod 755 "$MOUNT"
-
-# Add to fstab for persistence (using UUID)
-UUID=$(sudo blkid -s UUID -o value "$DISK")
-echo "UUID=$UUID $MOUNT ext4 defaults,nofail 0 2" | sudo tee -a /etc/fstab
-
-echo "GreptimeDB volume mounted at $MOUNT"
-
 # THEN Nomad
 sudo apt update -y && apt upgrade -y
 sudo apt install -y unzip curl
@@ -277,19 +271,25 @@ sudo mv nomad /usr/local/bin/
 sudo chmod +x /usr/local/bin/nomad
 
 sudo mkdir -p /etc/nomad.d
-sudo chmod 755 /etc/nomad.d  # Fixed: was 777 (security issue)
+sudo chmod 777 /etc/nomad.d
 
-# Create main client.hcl (NO drivers/host_volume here)
+
 cat <<EOT > /etc/nomad.d/client.hcl
+datacenter = "us-central1"  # Matches your Job Spec
+region     = "us-central1"
+
 client {
   enabled = true
   server_join {
     retry_join = ["10.128.0.21"]
   }
+
+  # THIS IS THE KEY: Linking the physical mount to the Nomad volume name
+  host_volume "greptime" {
+    path      = "/mnt/greptime"
+    read_only = false
+  }
 }
-
-region = "us-central1" 
-
 consul {
   enabled = false
 }
@@ -298,27 +298,10 @@ bind_addr = "0.0.0.0"
 data_dir  = "/opt/nomad/data"
 EOT
 
-# Separate drivers file
-cat <<EOT > /etc/nomad.d/drivers.hcl
-client {
-  drivers = ["docker"]
-}
-EOT
+    mkdir -p /opt/nomad/data
+    chmod 777 /opt/nomad/data
 
-# Separate host_volume file  
-cat <<EOT > /etc/nomad.d/greptime-volume.hcl
-client {
-  host_volume "greptime" {
-    path      = "/mnt/greptime"
-    read_only = false
-  }
-}
-EOT
-
-mkdir -p /opt/nomad/data
-chmod 755 /opt/nomad/data
-
-cat <<EOT > /etc/systemd/system/nomad.service
+    cat <<EOT > /etc/systemd/system/nomad.service
 [Unit]
 Description=Nomad Client
 After=network.target
@@ -326,19 +309,14 @@ After=network.target
 [Service]
 ExecStart=/usr/local/bin/nomad agent -config=/etc/nomad.d
 Restart=always
-RestartSec=5
 
 [Install]
 WantedBy=multi-user.target
 EOT
 
-systemctl daemon-reload
-systemctl enable nomad
-systemctl start nomad
-
-echo "Nomad client started with GreptimeDB volume at /mnt/greptime"
-
-
+    systemctl daemon-reload
+    systemctl enable nomad
+    systemctl start nomad
   EOF
 
 depends_on = [google_compute_region_disk.greptime_disk]
