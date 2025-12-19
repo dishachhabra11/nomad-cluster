@@ -22,8 +22,12 @@ job "greptimedb" {
 
       config {
         image = "greptime/greptimedb:v1.0.0-beta.3"
-        args  = []
+        args = [
+          "standalone",
+          "--config=/greptimedb_data/greptimedb.yaml"
+        ]
         ports = ["http"]
+        volumes = ["greptime:/greptimedb_data"]
       }
 
       resources {
