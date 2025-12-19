@@ -160,7 +160,7 @@ resource "google_compute_firewall" "client_firewall" {
 
   allow {
     protocol = "tcp"
-    ports    = ["4646"]
+    ports    = ["4646","4000", "4001", "4002", "4003"]
   }
 
   target_tags = ["nomad-client"]
