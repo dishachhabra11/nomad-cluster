@@ -287,6 +287,13 @@ client {
   server_join {
     retry_join = ["10.128.0.21"]
   }
+
+  drivers = ["docker"]
+
+host_volume "greptime" {
+  path      = "/mnt/greptime"
+  read_only = false
+}
 }
 
 region = "us-central1" 
@@ -295,12 +302,7 @@ consul {
   enabled = false
 }
 
-drivers = ["docker"]
 
-host_volume "greptime" {
-  path      = "/mnt/greptime"
-  read_only = false
-}
 
 bind_addr = "0.0.0.0"
 data_dir  = "/opt/nomad/data"
