@@ -6,14 +6,15 @@ job "greptimedb" {
     count = 1
 
     network {
-        port "http" {
-          static = 4000
-        }
-      }
+      port "http"     { static = 4000 }
+      port "rpc"      { static = 4001 }
+      port "mysql"    { static = 4002 }
+      port "postgres" { static = 4003 }
+    }
 
     volume "database-data" {
-      type   = "host"
-      source = "greptime" 
+      type      = "host"
+      source    = "greptime"
       read_only = false
     }
 
@@ -21,23 +22,28 @@ job "greptimedb" {
       driver = "docker"
 
       config {
-        image = "greptime/greptimedb:v1.0.0-beta.3"
-        ports = ["http"]
-        volumes = ["greptime:/greptimedb_data"]
+        image   = "greptime/greptimedb:latest"
+        ports   = ["http", "rpc", "mysql", "postgres"]
+        command = "standalone"
+        args = [
+          "start",
+          "--http-addr",       "0.0.0.0:4000",
+          "--rpc-bind-addr",   "0.0.0.0:4001",
+          "--mysql-addr",     "0.0.0.0:4002",
+          "--postgres-addr",  "0.0.0.0:4003"
+        ]
+      }
+
+      volume_mount {
+        volume      = "database-data"
+        destination = "/greptimedb_data"
+        read_only   = false
       }
 
       resources {
         cpu    = 500
         memory = 1024
       }
-
-    volume_mount {
-     volume      = "database-data"
-     destination = "/greptimedb"
-     read_only   = false
-}
-
-
     }
   }
 }
