@@ -15,11 +15,14 @@ provider "google" {
   project = "alfred-chainlake-staging"
   region  = "us-central1"
 }
+/*
 
  provider "nomad" {
   address = "http://35.239.126.208:4646"
   region  = "us-central1"
 }
+
+*/
 
 
 ## --------------------------------------------------------------------------------------------------
@@ -70,6 +73,7 @@ ui {
 consul {
   enabled = false
 }
+region = "us-central1" 
 
 bind_addr = "0.0.0.0"
 data_dir = "/opt/nomad/data"
@@ -169,9 +173,13 @@ resource "google_compute_firewall" "client_firewall" {
 
 ##----------  greptime job 
 
+/*
+
 resource "nomad_job" "greptime" {
   jobspec = file("${path.module}/jobs/greptime.nomad.hcl")
 }
+
+*/
 
 
 ## ------------ nomad client instance_template
@@ -227,6 +235,8 @@ client {
     # replace with server private IP or DNS
   }
 }
+
+region = "us-central1" 
 
 consul {
   enabled = false
