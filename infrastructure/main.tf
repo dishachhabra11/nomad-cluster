@@ -286,7 +286,7 @@ region     = "us-central1"
 client {
   enabled = true
   server_join {
-    retry_join = ["10.128.0.21"]
+    retry_join = ["10.128.0.39"]
   }
 
   # THIS IS THE KEY: Linking the physical mount to the Nomad volume name
