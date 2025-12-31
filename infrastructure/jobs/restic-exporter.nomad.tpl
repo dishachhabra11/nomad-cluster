@@ -15,7 +15,6 @@ job "restic-exporter" {
 
       config {
         image = "ngosang/restic-exporter:latest"   # your docker hub image
-        ports = ["http"]
       }
 
       env {
