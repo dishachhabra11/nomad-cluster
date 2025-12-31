@@ -297,6 +297,9 @@ client {
 }
 consul {
   enabled = false
+    address = ""  # Or invalid address like "invalid:8500"
+  auto_advertise = false
+  client_auto_join = false
 }
 
 bind_addr = "0.0.0.0"
