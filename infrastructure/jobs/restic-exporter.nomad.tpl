@@ -4,7 +4,7 @@ job "restic-exporter" {
 
   group "restic-exporter-group" {
 
-    volume "database-data" {
+    volume "database-restic-data" {
       type      = "host"
       source    = "greptime"
       read_only = false
