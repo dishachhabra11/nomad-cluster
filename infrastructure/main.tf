@@ -18,7 +18,7 @@ provider "google" {
 
 
  provider "nomad" {
-  address = "http://34.69.184.157:4646"
+  address = "http://34.29.0.55:4646"
   region  = "us-central1"
 }
 
