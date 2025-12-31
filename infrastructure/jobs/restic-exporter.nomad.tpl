@@ -23,7 +23,6 @@ job "restic-exporter" {
       config {
         image   = "ngosang/restic-exporter:latest"
         ports   = ["http"]
-        command = "standalone"
       }
 
       env {
