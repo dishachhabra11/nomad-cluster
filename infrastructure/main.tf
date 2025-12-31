@@ -175,20 +175,6 @@ resource "google_compute_firewall" "client_firewall" {
   ]
 }
 
-##----------  greptime job 
-
-
-
-resource "nomad_job" "greptime" {
-  jobspec = file("${path.module}/jobs/greptime.nomad.hcl")
-}
-
-jobspec = templatefile("${path.module}/jobs/restic-exporter.nomad.tpl", {
-  restic_password = var.restic_password
-  aws_access_key  = var.aws_access_key
-  aws_secret_key  = var.aws_secret_key
-  restic_repository = var.restic_repository
-})
 
 
 
@@ -395,6 +381,30 @@ resource "google_compute_region_instance_group_manager" "nomad_mig_client" {
     port = 4646
   }
 }
+
+data "google_secret_manager_secret_version" "restic_password" { secret = "restic_password" }
+
+data "google_secret_manager_secret_version" "aws_access_key_id" { secret = "restic_aws_access_key_id" }
+
+data "google_secret_manager_secret_version" "aws_secret_access_key" { secret = "restic_aws_secret_access_key" }
+
+data "google_secret_manager_secret_version" "restic_repository" { secret = "restic_repository" }
+
+##----------  greptime job 
+
+
+
+resource "nomad_job" "greptime" {
+  jobspec = file("${path.module}/jobs/greptime.nomad.hcl")
+}
+
+jobspec = templatefile("${path.module}/jobs/restic-exporter.nomad.tpl", {
+  restic_password = data.google_secret_manager_secret_version.restic_password.secret_data
+  aws_access_key  = data.google_secret_manager_secret_version.aws_access_key_id.secret_data
+  aws_secret_key  = data.google_secret_manager_secret_version.aws_secret_access_key.secret_data
+  restic_repository = data.google_secret_manager_secret_version.restic_repository.secret_data
+})
+
 
 
 
