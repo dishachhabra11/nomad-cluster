@@ -1,56 +1,49 @@
-job "restic-exporter" {
+job "greptimedb" {
   datacenters = ["us-central1"]
   type        = "service"
 
-  group "restic-exporter-group" {
+  group "db" {
     count = 1
 
     network {
-      port "metrics" {
-        static = 8001
-      }
+      port "http"     { static = 4000 }
+      port "rpc"      { static = 4001 }
+      port "mysql"    { static = 4002 }
+      port "postgres" { static = 4003 }
     }
 
-    task "restic-exporter-task" {
+    volume "database-data" {
+      type      = "host"
+      source    = "greptime"
+      read_only = false
+    }
+
+    task "greptimedb" {
       driver = "docker"
 
       config {
-        image = "ngosang/restic-exporter:latest"
-        args  = [
-          "--listen-port=8001"
+        image   = "greptime/greptimedb:latest"
+        ports   = ["http", "rpc", "mysql", "postgres"]
+        command = "standalone"
+        args = [
+          "start",
+          "--http-addr",       "0.0.0.0:4000",
+          "--rpc-bind-addr",   "0.0.0.0:4001",
+          "--mysql-addr",     "0.0.0.0:4002",
+          "--postgres-addr",  "0.0.0.0:4003"
         ]
       }
 
-      env {
-        TZ                   = "Asia/Kolkata"
-        RESTIC_REPOSITORY    = "${restic_repository}"
-        RESTIC_PASSWORD      = "${restic_password}"
-        AWS_ACCESS_KEY_ID    = "${aws_access_key}"
-        AWS_SECRET_ACCESS_KEY= "${aws_secret_key}"
-        REFRESH_INTERVAL     = "3600"
+      volume_mount {
+        volume      = "database-data"
+        destination = "/greptimedb_data"
+        read_only   = false
       }
 
       resources {
         cpu    = 500
-        memory = 256
+        memory = 1024
       }
-
-      volume_mount {
-        volume      = "database-restic-data"
-        destination = "/data"
-        read_only   = false
-      }
-
-      service {
-        name = "restic-exporter"
-        port = "metrics"
-        tags = ["metrics"]
-      }
-    }
-
-    volume "database-restic-data" {
-      type   = "host"
-      source = "greptime"
     }
   }
 }
