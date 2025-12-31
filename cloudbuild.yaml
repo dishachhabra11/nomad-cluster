@@ -28,9 +28,10 @@ steps:
   args:
     - '-c'
     - |
-      export TF_VAR_restic_password="$RESTIC_PASSWORD"
-      export TF_VAR_aws_access_key="$AWS_ACCESS_KEY_ID"
-      export TF_VAR_aws_secret_key="$AWS_SECRET_ACCESS_KEY"
+      echo "Exporting secrets to Terraform variables..."
+      export TF_VAR_restic_password="${RESTIC_PASSWORD}"
+      export TF_VAR_aws_access_key="${AWS_ACCESS_KEY_ID}"
+      export TF_VAR_aws_secret_key="${AWS_SECRET_ACCESS_KEY}"
 
       terraform -chdir=./infrastructure apply -auto-approve
   timeout: '1200s'
