@@ -73,9 +73,16 @@ server {
 ui {
   enabled = true
 }
-
 consul {
   enabled = false
+  auto_advertise = false
+  server_auto_join = false
+  client_auto_join = false
+}
+advertise {
+  http = "$LOCAL_IP"
+  rpc  = "$LOCAL_IP"
+  serf = "$LOCAL_IP"
 }
 region = "us-central1" 
 
@@ -157,6 +164,23 @@ resource "google_compute_firewall" "allow_lb_to_nomad" {
   source_ranges = [
     "0.0.0.0/0"
   ]
+}
+
+resource "google_compute_firewall" "allow_internal_nomad" {
+  name    = "allow-nomad-internal"
+  network = "default"
+
+  allow {
+    protocol = "tcp"
+    ports    = ["4646", "4647", "4648"]
+  }
+  allow {
+    protocol = "udp"
+    ports    = ["4648"]
+  }
+
+  # Allow all internal subnets to talk to each other
+  source_ranges = ["10.128.0.0/9"] 
 }
 
 resource "google_compute_firewall" "client_firewall" {
@@ -295,9 +319,16 @@ client {
     read_only = false
   }
 }
+
+advertise {
+  http = "$LOCAL_IP"
+  rpc  = "$LOCAL_IP"
+  serf = "$LOCAL_IP"
+}
+
 consul {
   enabled = false
-    address = ""  # Or invalid address like "invalid:8500"
+  address = ""  # Or invalid address like "invalid:8500"
   auto_advertise = false
   client_auto_join = false
 }
