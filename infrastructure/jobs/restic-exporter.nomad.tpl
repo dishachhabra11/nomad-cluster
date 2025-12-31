@@ -32,15 +32,15 @@ job "restic-exporter" {
       }
 
       volume_mount {
-        volume = "restic-data"
-        destination = "/data"
+       volume      = "restic-data"
+       destination = "/data"
       }
     }
+volume "restic-data" {
+  type      = "host"
+  source    = "/mnt/greptime/restic"
+  read_only = false
+}
 
-    volume "restic-data" {
-      type      = "host"
-      source    = "/host_path/restic/data"
-      read_only = false
-    }
   }
 }
