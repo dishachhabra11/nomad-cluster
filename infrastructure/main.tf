@@ -397,13 +397,15 @@ data "google_secret_manager_secret_version" "restic_repository" { secret = "rest
 resource "nomad_job" "greptime" {
   jobspec = file("${path.module}/jobs/greptime.nomad.hcl")
 }
-
-jobspec = templatefile("${path.module}/jobs/restic-exporter.nomad.tpl", {
+resource "nomad_job" "restic-exporter" {
+   jobspec = templatefile("${path.module}/jobs/restic-exporter.nomad.tpl", {
   restic_password = data.google_secret_manager_secret_version.restic_password.secret_data
   aws_access_key  = data.google_secret_manager_secret_version.aws_access_key_id.secret_data
   aws_secret_key  = data.google_secret_manager_secret_version.aws_secret_access_key.secret_data
   restic_repository = data.google_secret_manager_secret_version.restic_repository.secret_data
 })
+}
+
 
 
 
