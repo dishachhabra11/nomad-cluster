@@ -37,7 +37,7 @@ job "restic-exporter" {
 
       resources {
         cpu    = 500
-        memory = 256
+        memory = 1024
       }
 
       volume_mount {
