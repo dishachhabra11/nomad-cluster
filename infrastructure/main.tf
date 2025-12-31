@@ -46,6 +46,11 @@ resource "google_compute_instance_template" "nomad_server" {
     }  # Gives external IP (ephemeral)
   }
 
+  lifecycle {
+  create_before_destroy = true
+}
+
+
   metadata_startup_script = <<-EOF
     #!/bin/bash
     apt update -y && apt upgrade -y
@@ -178,9 +183,13 @@ resource "nomad_job" "greptime" {
   jobspec = file("${path.module}/jobs/greptime.nomad.hcl")
 }
 
-resource "nomad_job" "prometheus" {
-  jobspec = file("${path.module}/jobs/prometheus.nomad.hcl")
-}
+jobspec = templatefile("${path.module}/jobs/restic-exporter.nomad.tpl", {
+  restic_password = var.restic_password
+  aws_access_key  = var.aws_access_key
+  aws_secret_key  = var.aws_secret_key
+  restic_repository = var.restic_repository
+})
+
 
 
 
@@ -207,6 +216,12 @@ resource "google_compute_instance_template" "nomad-client-instance-template1" {
   disk_type    = "pd-ssd"
 
 }
+
+lifecycle {
+  create_before_destroy = true
+}
+
+
 
 
   tags = ["nomad-client"]

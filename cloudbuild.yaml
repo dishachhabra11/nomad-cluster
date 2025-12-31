@@ -12,7 +12,7 @@ steps:
 - id: 'terraform plan'
   name: 'hashicorp/terraform:latest'
   entrypoint: 'terraform'
-                                                                     #  Command arguments: terraform plan -out=tfplan -var="project_id=${PROJECT_ID}"
+#   Command arguments: terraform plan -out=tfplan -var="project_id=${PROJECT_ID}"
   args: ["-chdir=./infrastructure",'plan', '-out=tfplan', '-var', 'project_id=${_PROJECT_ID}']
 
 # 3. Apply the Plan (deploy changes)
@@ -20,13 +20,31 @@ steps:
 # For a basic example, we include it here:
 - id: 'terraform apply'
   name: 'hashicorp/terraform:latest'
-  # Command arguments: terraform apply tfplan
-  entrypoint: 'terraform'
-  args: ["-chdir=./infrastructure",'apply', 'tfplan']
+  entrypoint: 'bash'
+  secretEnv:
+    - RESTIC_PASSWORD
+    - AWS_ACCESS_KEY_ID
+    - AWS_SECRET_ACCESS_KEY
+  args:
+    - '-c'
+    - |
+      export TF_VAR_restic_password="$RESTIC_PASSWORD"
+      export TF_VAR_aws_access_key="$AWS_ACCESS_KEY_ID"
+      export TF_VAR_aws_secret_key="$AWS_SECRET_ACCESS_KEY"
 
-  # Set a timeout for the apply step to prevent indefinite runs
-  timeout: '1200s' 
+      terraform -chdir=./infrastructure apply -auto-approve
+  timeout: '1200s'
+
 
 options:
   # This tells Cloud Build to send logs to Cloud Logging instead of a GCS bucket
   logging: CLOUD_LOGGING_ONLY
+
+availableSecrets:
+  secretManager:
+    - versionName: projects/915898093084/secrets/restic_password
+      env: RESTIC_PASSWORD
+    - versionName: projects/915898093084/secrets/restic_aws_access_key_id
+      env: AWS_ACCESS_KEY_ID
+    - versionName: projects/915898093084/secrets/restic_aws_secret_access_key
+      env: AWS_SECRET_ACCESS_KEY
