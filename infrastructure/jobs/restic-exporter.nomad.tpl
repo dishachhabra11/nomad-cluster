@@ -3,6 +3,13 @@ job "restic-exporter" {
   type = "service"
 
   group "restic-exporter-group" {
+
+    volume "database-data" {
+      type      = "host"
+      source    = "greptime"
+      read_only = false
+    }
+
     task "restic-exporter-task" {
       driver = "docker"
 
@@ -31,16 +38,13 @@ job "restic-exporter" {
         }
       }
 
-      volume_mount {
-       volume      = "restic-data"
-       destination = "/data"
+       volume_mount {
+        volume      = "database-restic-data"
+        destination = "/data"
+        read_only   = false
       }
     }
-volume "restic-data" {
-  type      = "host"
-  source    = "/mnt/greptime/restic"
-  read_only = false
-}
+
 
   }
 }
