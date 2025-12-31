@@ -64,7 +64,18 @@ resource "google_compute_instance_template" "nomad_server" {
     mkdir -p /etc/nomad.d
     chmod 777 /etc/nomad.d
 
+     LOCAL_IP=$(curl -H "Metadata-Flavor: Google" http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/0/ip)
+
     cat <<EOT > /etc/nomad.d/server.hcl
+
+   
+
+advertise {
+  http = "$LOCAL_IP"
+  rpc  = "$LOCAL_IP"
+  serf = "$LOCAL_IP"
+}
+
 server {
   enabled          = true
   bootstrap_expect = 1
@@ -79,11 +90,7 @@ consul {
   server_auto_join = false
   client_auto_join = false
 }
-advertise {
-  http = "$LOCAL_IP"
-  rpc  = "$LOCAL_IP"
-  serf = "$LOCAL_IP"
-}
+
 region = "us-central1" 
 
 bind_addr = "0.0.0.0"
@@ -302,10 +309,23 @@ sudo chmod +x /usr/local/bin/nomad
 sudo mkdir -p /etc/nomad.d
 sudo chmod 777 /etc/nomad.d
 
+# 1. Get this client's local IP
+LOCAL_IP=$(curl -H "Metadata-Flavor: Google" http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/0/ip)
+
+# 2. Find the Server's Private IP using the 'nomad-server' tag
+# This requires the VM Service Account to have "Compute Viewer" permissions
+SERVER_IP=$(gcloud compute instances list --filter="tags.items=nomad-server" --format="value(networkInterfaces[0].networkIP)" --limit=1)
+
 
 cat <<EOT > /etc/nomad.d/client.hcl
 datacenter = "us-central1"  # Matches your Job Spec
 region     = "us-central1"
+
+advertise {
+  http = "$LOCAL_IP"
+  rpc  = "$LOCAL_IP"
+  serf = "$LOCAL_IP"
+}
 
 client {
   enabled = true
@@ -320,11 +340,7 @@ client {
   }
 }
 
-advertise {
-  http = "$LOCAL_IP"
-  rpc  = "$LOCAL_IP"
-  serf = "$LOCAL_IP"
-}
+
 
 consul {
   enabled = false
@@ -414,6 +430,25 @@ resource "google_compute_region_instance_group_manager" "nomad_mig_client" {
     name = "nomad-ui-client"
     port = 4646
   }
+}
+
+resource "google_compute_firewall" "nomad_internal_traffic" {
+  name    = "allow-nomad-internal-gossip"
+  network = "default"
+
+  allow {
+    protocol = "tcp"
+    ports    = ["4646", "4647", "4648"]
+  }
+
+  allow {
+    protocol = "udp"
+    ports    = ["4648"]
+  }
+
+  # Allow the internal VPC range to talk to itself
+  source_ranges = ["10.128.0.0/9"] 
+  target_tags   = ["nomad-server", "nomad-client"]
 }
 
 data "google_secret_manager_secret_version" "restic_password" { secret = "restic_password" }
