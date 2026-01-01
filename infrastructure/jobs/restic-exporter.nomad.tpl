@@ -21,7 +21,7 @@ job "restic-exporter" {
       driver = "docker"
 
       config {
-        image   = "ngosang/restic-exporter:latest"
+        image   = "disha029/prometheous-exporter:latest"
         ports   = ["http"]
       }
 
