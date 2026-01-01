@@ -34,7 +34,7 @@ job "restic-exporter" {
         GREPTIME_DB             = "public"
         GREPTIME_USER           = "greptimedb"
         GREPTIME_PASSWORD       = "deqode@123"
-        GREPTIME_HOST           = "http://34.30.60.136:4000"
+        GREPTIME_HOST           = "http://34.30.60.136:4000" 
         AWS_DEFAULT_REGION      = "ap-south-1"
         REFRESH_INTERVAL        = "3600"
       }
