@@ -3,7 +3,7 @@ job "grafana" {
     type = "service"
 
     group "grafana" {
-     count = 1;
+     count = 1
 
      network {
         port "http" {
@@ -23,6 +23,6 @@ job "grafana" {
         memory = 1024
       }
      }
-     
+
     }
 }
