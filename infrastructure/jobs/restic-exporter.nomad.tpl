@@ -6,6 +6,7 @@ job "restic-exporter" {
     count = 1
 
     network {
+
       port "http" {
         static = 8001
       }
@@ -25,7 +26,7 @@ job "restic-exporter" {
       driver = "docker"
 
       config {
-        image   = "disha029/prometheous-exporter:latest"
+        image   = "ngosang/restic-exporter"
         ports   = ["http"]
       }
 
@@ -104,7 +105,7 @@ scrape_configs:
   - job_name: 'restic-exporter'
     metrics_path: '/metrics'
     static_configs:
-      - targets: ['localhost:8001']
+      - targets: ['34.30.60.136:8001']
         labels:
           instance: 'restic-backup'
 
