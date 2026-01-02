@@ -196,7 +196,7 @@ resource "google_compute_firewall" "client_firewall" {
 
   allow {
     protocol = "tcp"
-    ports    = ["4646","4000", "4001", "4002", "4003", "8001", "9090"]
+    ports    = ["4646","4000", "4001", "4002", "4003", "8001", "9090" , "3000"]
   }
 
   target_tags = ["nomad-client"]
@@ -473,6 +473,10 @@ resource "nomad_job" "restic-exporter" {
   aws_secret_key  = data.google_secret_manager_secret_version.aws_secret_access_key.secret_data
   restic_repository = data.google_secret_manager_secret_version.restic_repository.secret_data
 })
+}
+
+resource "nomad_job" "grafana" {
+  jobspec = file("${path.module}/jobs/grafana.nomad.hcl")
 }
 
 
