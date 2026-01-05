@@ -504,7 +504,7 @@ module "consul-server-mig" {
   source               = "./modules/mig/consul_server"
   project_id           = "alfred-chainlake-staging"
   region               = "us-central1"
-  name_prefix          = "wazuh-manager"
+  name_prefix          = "consul-server"
   instance_template_id = module.consul-server-template.instance_template_id
   target_size          = 1
 }
