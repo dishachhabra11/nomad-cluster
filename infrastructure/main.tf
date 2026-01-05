@@ -85,9 +85,10 @@ ui {
   enabled = true
 }
 consul {
-  enabled = false
+  enabled = true
+  address = "provider=gce tag_value=consul-server"
   auto_advertise = false
-  server_auto_join = false
+  server_auto_join = true
   client_auto_join = false
 }
 
@@ -309,6 +310,20 @@ sudo chmod +x /usr/local/bin/nomad
 sudo mkdir -p /etc/nomad.d
 sudo chmod 777 /etc/nomad.d
 
+
+# THEN Consul Client
+CONSUL_VERSION="1.17.3"
+
+# Download and install Consul
+curl -O https://releases.hashicorp.com/consul/${CONSUL_VERSION}/consul_${CONSUL_VERSION}_linux_amd64.zip
+unzip consul_${CONSUL_VERSION}_linux_amd64.zip
+sudo mv consul /usr/local/bin/
+sudo chmod +x /usr/local/bin/consul
+
+# Create Consul directories
+sudo mkdir -p /etc/consul.d /opt/consul
+sudo chmod 777 /etc/consul.d /opt/consul
+
 # 1. Get this client's local IP
 LOCAL_IP=$(curl -H "Metadata-Flavor: Google" http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/0/ip)
 
@@ -330,7 +345,7 @@ advertise {
 client {
   enabled = true
   server_join {
-    retry_join = ["10.128.0.39"]
+    retry_join = ["10.128.0.39"].  # IP OF NOMAD SERVER 
   }
 
   # THIS IS THE KEY: Linking the physical mount to the Nomad volume name
@@ -343,10 +358,10 @@ client {
 
 
 consul {
-  enabled = false
+  enabled = true
   address = ""  # Or invalid address like "invalid:8500"
-  auto_advertise = false
-  client_auto_join = false
+  auto_advertise = true
+  client_auto_join = true
 }
 
 bind_addr = "0.0.0.0"
@@ -369,6 +384,30 @@ Restart=always
 WantedBy=multi-user.target
 EOT
 
+# Configure Consul client
+cat <<EOT > /etc/consul.d/consul.hcl
+datacenter = "us-central1"
+data_dir   = "/opt/consul"
+bind_addr = "0.0.0.0"
+client_addr = "0.0.0.0"
+retry_join = ["provider=gce tag_value=consul-server"]
+ui = true
+EOT
+
+# Create systemd service
+cat <<EOT > /etc/systemd/system/consul.service
+[Unit]
+Description=Consul Agent
+After=network.target
+
+[Service]
+ExecStart=/usr/local/bin/consul agent -config-dir=/etc/consul.d
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+EOT
+
     systemctl daemon-reload
     systemctl enable nomad
     systemctl start nomad
@@ -377,6 +416,8 @@ EOT
 depends_on = [google_compute_region_disk.greptime_disk]
 
 }
+
+
 
 
 
@@ -449,6 +490,15 @@ resource "google_compute_firewall" "nomad_internal_traffic" {
   # Allow the internal VPC range to talk to itself
   source_ranges = ["10.128.0.0/9"] 
   target_tags   = ["nomad-server", "nomad-client"]
+}
+
+module "consul-server" {
+  source = "./module/instance_template/consul_server"
+  name_prefix= "consul-server"
+  machine_type= "e2-medium"
+  region = "us-central1"
+  image = "projects/ubuntu-os-cloud/global/images/family/ubuntu-2204-lts"
+  tags= ["consul-server"]
 }
 
 data "google_secret_manager_secret_version" "restic_password" { secret = "restic_password" }
