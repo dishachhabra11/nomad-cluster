@@ -1,6 +1,11 @@
+resource "random_id" "mig_suffix" {
+  byte_length = 4
+}
+
+
 resource "google_compute_instance_template" "consul-server-instance-template1" {
 
-  name_prefix  = var.name_prefix
+  name_prefix = consul-server-${random_id.mig_suffix.hex}"
   machine_type = var.machine_type
   region       = var.region
 
@@ -72,8 +77,8 @@ resource "google_compute_instance_template" "consul-server-instance-template1" {
   server           = true
   datacenter       = "us-central1"
   data_dir         = "/opt/consul"
-  bind_addr        = "$LOCAL_IP"
-  advertise_addr   = "$LOCAL_IP"
+  bind_addr        = "{{ GetPrivateIP }}"
+  client_addr = "0.0.0.0"
   retry_join       = ["provider=gce tag_value=consul-server"]
   bootstrap_expect = 1
   ui_config {
