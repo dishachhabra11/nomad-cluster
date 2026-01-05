@@ -311,12 +311,9 @@ sudo mkdir -p /etc/nomad.d
 sudo chmod 777 /etc/nomad.d
 
 
-# THEN Consul Client
-CONSUL_VERSION="1.17.3"
-
 # Download and install Consul
 curl -O https://releases.hashicorp.com/consul/1.17.3/consul_1.17.3_linux_amd64.zip
-unzip consul_${CONSUL_VERSION}_linux_amd64.zip
+unzip consul_1.17.3_linux_amd64.zip
 sudo mv consul /usr/local/bin/
 sudo chmod +x /usr/local/bin/consul
 
