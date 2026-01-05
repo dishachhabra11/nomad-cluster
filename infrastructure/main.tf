@@ -342,7 +342,7 @@ advertise {
 client {
   enabled = true
   server_join {
-    retry_join = ["10.128.0.39"].  # IP OF NOMAD SERVER 
+    retry_join = ["10.128.0.39"]  # IP OF NOMAD SERVER 
   }
 
   # THIS IS THE KEY: Linking the physical mount to the Nomad volume name
