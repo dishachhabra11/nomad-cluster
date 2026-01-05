@@ -321,6 +321,8 @@ sudo chmod +x /usr/local/bin/consul
 sudo mkdir -p /etc/consul.d /opt/consul
 sudo chmod 777 /etc/consul.d /opt/consul
 
+
+
 # 1. Get this client's local IP
 LOCAL_IP=$(curl -H "Metadata-Flavor: Google" http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/0/ip)
 
@@ -385,7 +387,7 @@ EOT
 cat <<EOT > /etc/consul.d/consul.hcl
 datacenter = "us-central1"
 data_dir   = "/opt/consul"
-bind_addr = "0.0.0.0"
+bind_addr = "{{ GetPrivateIP }}"
 client_addr = "0.0.0.0"
 retry_join = ["provider=gce tag_value=consul-server"]
 ui = true
