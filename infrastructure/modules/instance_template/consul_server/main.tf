@@ -5,7 +5,7 @@ resource "random_id" "mig_suffix" {
 
 resource "google_compute_instance_template" "consul-server-instance-template1" {
 
-  name_prefix = consul-server-${random_id.mig_suffix.hex}"
+  name_prefix = consul-server-${random_id.mig_suffix.hex}
   machine_type = var.machine_type
   region       = var.region
 
