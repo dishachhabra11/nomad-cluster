@@ -491,13 +491,22 @@ resource "google_compute_firewall" "nomad_internal_traffic" {
   target_tags   = ["nomad-server", "nomad-client"]
 }
 
-module "consul-server" {
+module "consul-server-template" {
   source = "./modules/instance_template/consul_server"
   name_prefix= "consul-server"
   machine_type= "e2-medium"
   region = "us-central1"
   image = "projects/ubuntu-os-cloud/global/images/family/ubuntu-2204-lts"
   tags= ["consul-server"]
+}
+
+module "consul-server-mig" {
+  source               = "./modules/mig/consul_server"
+  project_id           = "alfred-chainlake-staging"
+  region               = "us-central1"
+  name_prefix          = "wazuh-manager"
+  instance_template_id = module.consul-server-template.instance_template_id
+  target_size          = 1
 }
 
 data "google_secret_manager_secret_version" "restic_password" { secret = "restic_password" }
