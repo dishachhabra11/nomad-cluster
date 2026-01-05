@@ -22,6 +22,7 @@ provider "google" {
   region  = "us-central1"
 }
 
+provider "random" {}
 
 
 ## --------------------------------------------------------------------------------------------------
@@ -159,7 +160,7 @@ resource "google_compute_firewall" "allow_lb_to_nomad" {
 
   allow {
     protocol = "tcp"
-    ports    = ["4646", "4647" , "4648", "8500" , "8600" , "8301" , "8501"]
+    ports    = ["4646", "4647" , "4648", "8500" , "8600" , "8301" , "8501" , "8300"]
   }
 
   allow {
@@ -167,7 +168,7 @@ resource "google_compute_firewall" "allow_lb_to_nomad" {
     ports    = ["4647"]
   }
 
-  target_tags = ["nomad-server"]
+  target_tags = ["nomad-server" , "consul-server"]
 
   source_ranges = [
     "0.0.0.0/0"
