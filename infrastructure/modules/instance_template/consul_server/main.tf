@@ -20,14 +20,7 @@ resource "google_compute_instance_template" "consul-server-instance-template1" {
   lifecycle {
     create_before_destroy = true
   }
-  ports {
-  dns = 8600
-  }
-  dns_config {
-  allow_stale = true
-  max_stale   = "5m"
-  } 
-
+  
   tags = var.tags
 
   network_interface {
