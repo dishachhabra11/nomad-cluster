@@ -493,7 +493,7 @@ resource "google_compute_firewall" "nomad_internal_traffic" {
 }
 
 module "consul-server" {
-  source = "./module/instance_template/consul_server"
+  source = "./modules/instance_template/consul_server"
   name_prefix= "consul-server"
   machine_type= "e2-medium"
   region = "us-central1"
