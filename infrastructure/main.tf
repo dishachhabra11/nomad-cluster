@@ -159,7 +159,7 @@ resource "google_compute_firewall" "allow_lb_to_nomad" {
 
   allow {
     protocol = "tcp"
-    ports    = ["4646", "4647" , "4648"]
+    ports    = ["4646", "4647" , "4648", "8500" , "8600" , "8301" , "8501"]
   }
 
   allow {
@@ -197,7 +197,7 @@ resource "google_compute_firewall" "client_firewall" {
 
   allow {
     protocol = "tcp"
-    ports    = ["4646","4000", "4001", "4002", "4003", "8001", "9090" , "3000"]
+    ports    = ["4646","4000", "4001", "4002", "4003", "8001", "9090" , "3000" , "8500" , "8600" , "8301" , "8501"]
   }
 
   target_tags = ["nomad-client"]
