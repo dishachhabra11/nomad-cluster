@@ -22,7 +22,9 @@ provider "google" {
   region  = "us-central1"
 }
 
-provider "random" {}
+provider "random" {
+
+}
 
 
 ## --------------------------------------------------------------------------------------------------
@@ -240,6 +242,10 @@ lifecycle {
   create_before_destroy = true
 }
 
+  service_account {
+    email  = "terraform@alfred-chainlake-staging.iam.gserviceaccount.com"
+    scopes = ["cloud-platform"]
+  }
 
 
 
