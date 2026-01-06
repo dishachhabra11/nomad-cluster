@@ -3,7 +3,7 @@ job "wazuh" {
   type = "service"
 
   constraint {
-    attribute = "${node.unique.name}"
+    attribute = "$${node.unique.name}"
     value     = "worker-01"
   }
 
