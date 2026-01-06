@@ -80,70 +80,20 @@ sudo chmod 777 /etc/consul.d /opt/consul
 
 LOCAL_IP=$(curl -H "Metadata-Flavor: Google" http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/0/ip)
 
-cat <<EOT > /etc/nomad.d/client.hcl
-datacenter = "us-central1"  # Matches your Job Spec
-region     = "us-central1"
 
-advertise {
-  http = "$LOCAL_IP"
-  rpc  = "$LOCAL_IP"
-  serf = "$LOCAL_IP"
-}
-
-client {
-  enabled = true
-  server_join {
-    retry_join = ["10.128.0.39"]
-  }
-
-  # THIS IS THE KEY: Linking the physical mount to the Nomad volume name
-  host_volume "greptime" {
-    path      = "/mnt/greptime"
-    read_only = false
-  }
-}
-
-
-
-consul {
-  enabled = true
-  address = ""  # Or invalid address like "invalid:8500"
-  auto_advertise = true
-  client_auto_join = true
-}
-
-bind_addr = "0.0.0.0"
-data_dir  = "/opt/nomad/data"
-EOT
-
-    mkdir -p /opt/nomad/data
-    chmod 777 /opt/nomad/data
-
-    cat <<EOT > /etc/systemd/system/nomad.service
-[Unit]
-Description=Nomad Client
-After=network.target
-
-[Service]
-ExecStart=/usr/local/bin/nomad agent -config=/etc/nomad.d
-Restart=always
-
-[Install]
-WantedBy=multi-user.target
-EOT
 
 # Configure Consul client
-cat <<EOT > /etc/consul.d/consul.hcl
+cat <<EOT >/etc/consul.d/consul.hcl
 datacenter = "us-central1"
 data_dir   = "/opt/consul"
-bind_addr = "{{ GetPrivateIP }}"
+bind_addr  = "${LOCAL_IP}"
 client_addr = "0.0.0.0"
 retry_join = ["provider=gce tag_value=consul-server"]
 ui = true
 EOT
 
-# Create systemd service
-cat <<EOT > /etc/systemd/system/consul.service
+# Consul systemd service
+cat <<EOT >/etc/systemd/system/consul.service
 [Unit]
 Description=Consul Agent
 After=network.target
@@ -155,19 +105,16 @@ Restart=always
 [Install]
 WantedBy=multi-user.target
 EOT
-  systemctl daemon-reload
-  systemctl enable consul
-  systemctl start consul
 
-
-    systemctl daemon-reload
-    systemctl enable nomad
-    systemctl start nomad
-  EOF
+systemctl daemon-reload
+systemctl enable consul
+systemctl start consul
 
 
 
-    cat <<EOT > /etc/nomad.d/server.hcl
+
+
+cat <<EOT > /etc/nomad.d/server.hcl
 
    
 
@@ -226,6 +173,11 @@ EOT
     systemctl daemon-reload
     systemctl enable nomad
     systemctl start nomad
+
+ systemctl daemon-reload
+    systemctl enable consul
+    systemctl start consul
+
   EOF
 }
 
