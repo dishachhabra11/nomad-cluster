@@ -605,12 +605,34 @@ data "google_secret_manager_secret_version" "wazuh_certs" {
 ##----------  greptime job 
 
 resource "nomad_job" "wazuh" {
-  jobspec = templatefile("${path.module}/jobs/wazuh_cluster.nomad.tpl",{
-     for k, v in data.google_secret_manager_secret_version.wazuh_certs :
-      k => v.secret_data
-    }
-  )
+  jobspec = templatefile("${path.module}/jobs/wazuh_cluster.nomad.tpl", {
+    for k, v in data.google_secret_manager_secret_version.wazuh_certs :
+    k => v.secret_data
+  })
 }
+
+
+
+/*
+
+resource "nomad_job" "greptime" {
+  jobspec = file("${path.module}/jobs/greptime.nomad.hcl")
+}
+resource "nomad_job" "restic-exporter" {
+   jobspec = templatefile("${path.module}/jobs/restic-exporter.nomad.tpl", {
+  restic_password = data.google_secret_manager_secret_version.restic_password.secret_data
+  aws_access_key  = data.google_secret_manager_secret_version.aws_access_key_id.secret_data
+  aws_secret_key  = data.google_secret_manager_secret_version.aws_secret_access_key.secret_data
+  restic_repository = data.google_secret_manager_secret_version.restic_repository.secret_data
+})
+}
+
+resource "nomad_job" "grafana" {
+  jobspec = file("${path.module}/jobs/grafana.nomad.hcl")
+}
+
+*/
+
 
 
 
