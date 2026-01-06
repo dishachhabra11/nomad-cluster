@@ -85,6 +85,7 @@ resource "google_compute_instance_template" "consul-server-instance-template1" {
   ui_config {
     enabled = true
   }
+  
   EOT
 
   ############################
