@@ -23,7 +23,6 @@ provider "google" {
 }
 
 provider "random" {
-
 }
 
 
@@ -45,15 +44,17 @@ resource "google_compute_instance_template" "nomad_server" {
   network_interface {
     network = "default"
     access_config {
-
     }  # Gives external IP (ephemeral)
   }
 
+service_account {
+    email  = "terraform@alfred-chainlake-staging.iam.gserviceaccount.com"
+    scopes = ["cloud-platform"]
+  }
+  
   lifecycle {
   create_before_destroy = true
 }
-
-
 
   metadata_startup_script = <<-EOF
     #!/bin/bash
@@ -111,12 +112,7 @@ systemctl enable consul
 systemctl start consul
 
 
-
-
-
-cat <<EOT > /etc/nomad.d/server.hcl
-
-   
+cat <<EOT > /etc/nomad.d/server.hcl 
 
 advertise {
   http = "$LOCAL_IP"
@@ -137,7 +133,9 @@ consul {
   address = "provider=gce tag_value=consul-server"
   auto_advertise = false
   server_auto_join = true
-  client_auto_join = false
+  client_auto_join = true
+
+  server_service_name = "nomad-server"
 }
 
 region = "us-central1" 
@@ -401,7 +399,7 @@ advertise {
 client {
   enabled = true
   server_join {
-    retry_join = ["10.128.0.39"]
+    retry_join = ["provider=gce tag_value=nomad-server"]
   }
 
   # THIS IS THE KEY: Linking the physical mount to the Nomad volume name
