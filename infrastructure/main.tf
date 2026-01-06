@@ -612,11 +612,11 @@ locals {
 }
 
 resource "nomad_job" "wazuh" {
-  jobspec = templatefile(
-    "${path.module}/jobs/wazuh_cluster.nomad.tpl",
+  jobspec = templatefile("${path.module}/jobs/wazuh_cluster.nomad.tpl",
     local.wazuh_certs
   )
 }
+
 
 
 
