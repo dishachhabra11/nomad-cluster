@@ -86,7 +86,7 @@ LOCAL_IP=$(curl -H "Metadata-Flavor: Google" http://metadata.google.internal/com
 cat <<EOT >/etc/consul.d/consul.hcl
 datacenter = "us-central1"
 data_dir   = "/opt/consul"
-bind_addr  = "${LOCAL_IP}"
+bind_addr = "{{ GetPrivateIP }}"
 client_addr = "0.0.0.0"
 retry_join = ["provider=gce tag_value=consul-server"]
 ui = true
