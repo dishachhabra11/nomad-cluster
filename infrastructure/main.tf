@@ -577,13 +577,13 @@ data "google_secret_manager_secret_version" "aws_secret_access_key" { secret = "
 data "google_secret_manager_secret_version" "restic_repository" { secret = "restic_repository" }
 
 
-###--------- ssl certificates
+## --------- ssl certificates
 locals {
   wazuh_secrets = {
     root_ca_public        = "root-ca_pem"
     root_ca_private       = "root-ca_key"
     master_public         = "master_pem"
-    master_private        = "master-key_pem
+    master_private        = "master-key_pem"
     indexer_public        = "indexer1_pem"
     indexer_private       = "indexer1-key_pem"
     dashboard_public      = "dashboard_pem"
