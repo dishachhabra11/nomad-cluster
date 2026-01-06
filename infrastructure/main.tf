@@ -130,7 +130,7 @@ ui {
 }
 consul {
   enabled = true
-  address = "provider=gce tag_value=consul-server"
+  address = ""
   auto_advertise = false
   server_auto_join = true
   client_auto_join = true
