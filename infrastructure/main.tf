@@ -56,129 +56,176 @@ resource "google_compute_instance_template" "nomad_server" {
 
 
   metadata_startup_script = <<-EOF
-    
-#!/bin/bash
-set -e
+    #!/bin/bash
+    apt update -y && apt upgrade -y
+    apt install -y unzip curl
 
-### Basics
-apt-get update -y
-apt-get install -y unzip curl jq
+    curl -O https://releases.hashicorp.com/nomad/1.7.6/nomad_1.7.6_linux_amd64.zip
+    unzip nomad_1.7.6_linux_amd64.zip
+    mv nomad /usr/local/bin/
+    chmod +x /usr/local/bin/nomad
 
-### Get private IP
-LOCAL_IP=$(curl -sf -H "Metadata-Flavor: Google" \
-http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/0/ip)
+    mkdir -p /etc/nomad.d
+    chmod 777 /etc/nomad.d
 
-### Install Consul
-CONSUL_VERSION=1.17.3
-curl -sfO https://releases.hashicorp.com/consul/${CONSUL_VERSION}/consul_${CONSUL_VERSION}_linux_amd64.zip
-unzip consul_${CONSUL_VERSION}_linux_amd64.zip
-mv consul /usr/local/bin/
-chmod +x /usr/local/bin/consul
+# Download and install Consul
+curl -O https://releases.hashicorp.com/consul/1.17.3/consul_1.17.3_linux_amd64.zip
+unzip consul_1.17.3_linux_amd64.zip
+sudo mv consul /usr/local/bin/
+sudo chmod +x /usr/local/bin/consul
 
-### Install Nomad
-NOMAD_VERSION=1.7.6
-curl -sfO https://releases.hashicorp.com/nomad/${NOMAD_VERSION}/nomad_${NOMAD_VERSION}_linux_amd64.zip
-unzip nomad_${NOMAD_VERSION}_linux_amd64.zip
-mv nomad /usr/local/bin/
-chmod +x /usr/local/bin/nomad
+# Create Consul directories
+sudo mkdir -p /etc/consul.d /opt/consul
+sudo chmod 777 /etc/consul.d /opt/consul
 
-### Directories
-mkdir -p /etc/consul.d /opt/consul
-mkdir -p /etc/nomad.d /opt/nomad
-chmod 755 /etc/consul.d /etc/nomad.d
-chmod 700 /opt/consul /opt/nomad
+LOCAL_IP=$(curl -H "Metadata-Flavor: Google" http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/0/ip)
 
-#################################
-# Consul (CLIENT)
-#################################
-cat <<EOF >/etc/consul.d/consul.hcl
+cat <<EOT > /etc/nomad.d/client.hcl
+datacenter = "us-central1"  # Matches your Job Spec
+region     = "us-central1"
+
+advertise {
+  http = "$LOCAL_IP"
+  rpc  = "$LOCAL_IP"
+  serf = "$LOCAL_IP"
+}
+
+client {
+  enabled = true
+  server_join {
+    retry_join = ["10.128.0.39"]
+  }
+
+  # THIS IS THE KEY: Linking the physical mount to the Nomad volume name
+  host_volume "greptime" {
+    path      = "/mnt/greptime"
+    read_only = false
+  }
+}
+
+
+
+consul {
+  enabled = true
+  address = ""  # Or invalid address like "invalid:8500"
+  auto_advertise = true
+  client_auto_join = true
+}
+
+bind_addr = "0.0.0.0"
+data_dir  = "/opt/nomad/data"
+EOT
+
+    mkdir -p /opt/nomad/data
+    chmod 777 /opt/nomad/data
+
+    cat <<EOT > /etc/systemd/system/nomad.service
+[Unit]
+Description=Nomad Client
+After=network.target
+
+[Service]
+ExecStart=/usr/local/bin/nomad agent -config=/etc/nomad.d
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+EOT
+
+# Configure Consul client
+cat <<EOT > /etc/consul.d/consul.hcl
 datacenter = "us-central1"
 data_dir   = "/opt/consul"
-
-bind_addr   = "${LOCAL_IP}"
+bind_addr = "{{ GetPrivateIP }}"
 client_addr = "0.0.0.0"
-
 retry_join = ["provider=gce tag_value=consul-server"]
+ui = true
+EOT
 
-connect {
-  enabled = true
-}
-EOF
-
-cat <<EOF >/etc/systemd/system/consul.service
+# Create systemd service
+cat <<EOT > /etc/systemd/system/consul.service
 [Unit]
 Description=Consul Agent
-After=network-online.target
-Wants=network-online.target
+After=network.target
 
 [Service]
 ExecStart=/usr/local/bin/consul agent -config-dir=/etc/consul.d
 Restart=always
-LimitNOFILE=65536
 
 [Install]
 WantedBy=multi-user.target
-EOF
+EOT
+  systemctl daemon-reload
+  systemctl enable consul
+  systemctl start consul
 
-#################################
-# Nomad (SERVER ONLY)
-#################################
-cat <<EOF >/etc/nomad.d/server.hcl
-datacenter = "us-central1"
-region     = "us-central1"
 
-bind_addr = "0.0.0.0"
-data_dir  = "/opt/nomad"
+    systemctl daemon-reload
+    systemctl enable nomad
+    systemctl start nomad
+  EOF
+
+
+
+    cat <<EOT > /etc/nomad.d/server.hcl
+
+   
 
 advertise {
-  http = "${LOCAL_IP}"
-  rpc  = "${LOCAL_IP}"
-  serf = "${LOCAL_IP}"
+  http = "$LOCAL_IP"
+  rpc  = "$LOCAL_IP"
+  serf = "$LOCAL_IP"
 }
 
 server {
   enabled          = true
-  bootstrap_expect = 3
-}
-
-consul {
-  enabled = true
-  address = "127.0.0.1:8500"
+  bootstrap_expect = 1
 }
 
 ui {
   enabled = true
 }
+consul {
+  enabled = true
+  address = "provider=gce tag_value=consul-server"
+  auto_advertise = false
+  server_auto_join = true
+  client_auto_join = false
+}
+
+region = "us-central1" 
+
+bind_addr = "0.0.0.0"
+data_dir = "/opt/nomad/data"
 
 telemetry {
-  collection_interval = "10s"
-  prometheus_metrics  = true
+  collection_interval        = "10s"
+  prometheus_metrics         = true
+  publish_allocation_metrics = true
+  publish_node_metrics       = true
 }
-EOF
 
-cat <<EOF >/etc/systemd/system/nomad.service
+EOT
+
+    mkdir -p /opt/nomad/data
+    chmod 777 /opt/nomad/data
+
+    cat <<EOT > /etc/systemd/system/nomad.service
 [Unit]
 Description=Nomad Server
-After=network-online.target consul.service
-Wants=network-online.target
+After=network.target
 
 [Service]
 ExecStart=/usr/local/bin/nomad agent -config=/etc/nomad.d
 Restart=always
-LimitNOFILE=65536
 
 [Install]
 WantedBy=multi-user.target
-EOF
+EOT
 
-### Enable & start
-systemctl daemon-reexec
-systemctl daemon-reload
-systemctl enable consul nomad
-systemctl start consul
-sleep 10
-systemctl start nomad
-
+    systemctl daemon-reload
+    systemctl enable nomad
+    systemctl start nomad
   EOF
 }
 
