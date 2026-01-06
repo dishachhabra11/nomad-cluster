@@ -88,7 +88,7 @@ template {
   destination = "local/config/opensearch.yml"
   perms       = "600"
      data        = <<EOF
-${file("../config/wazuh-indexer.yml")}
+${file("${path.module}/config/wazuh-indexer.yml")}
 EOF
 }
 
