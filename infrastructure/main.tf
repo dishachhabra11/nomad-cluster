@@ -605,10 +605,13 @@ data "google_secret_manager_secret_version" "wazuh_certs" {
 ##----------  greptime job 
 
 resource "nomad_job" "wazuh" {
-  jobspec = templatefile("${path.module}/jobs/wazuh_cluster.nomad.tpl", {
+ 
+  jobspec =  <<- EOT 
+  templatefile("${path.module}/jobs/wazuh_cluster.nomad.tpl", {
     for k, v in data.google_secret_manager_secret_version.wazuh_certs :
     k => v.secret_data
   })
+  EOT
 }
 
 
