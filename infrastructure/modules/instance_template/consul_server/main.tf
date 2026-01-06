@@ -26,6 +26,11 @@ resource "google_compute_instance_template" "consul-server-instance-template1" {
   lifecycle {
     create_before_destroy = true
   }
+
+  service_account {
+    email  = terraform@alfred-chainlake-staging.iam.gserviceaccount.com
+    scopes = ["cloud-platform"]
+  }
   
   tags = var.tags
 
