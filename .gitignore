@@ -1,3 +1,6 @@
 /infrastructure/.terraform
 
 /infrastructure/.terraform.lock.hcl
+
+/infrastructure/certs
+

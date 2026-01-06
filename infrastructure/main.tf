@@ -18,7 +18,7 @@ provider "google" {
 
 
  provider "nomad" {
-  address = "http://34.29.0.55:4646"
+  address = "http://34.122.191.198:4646"
   region  = "us-central1"
 }
 
@@ -576,6 +576,32 @@ data "google_secret_manager_secret_version" "aws_secret_access_key" { secret = "
 
 data "google_secret_manager_secret_version" "restic_repository" { secret = "restic_repository" }
 
+
+###--------- ssl certificates
+locals {
+  wazuh_secrets = {
+    root_ca_public        = "root-ca_pem"
+    root_ca_private       = "root-ca_key"
+    master_public         = "master_pem"
+    master_private        = "master-key_pem
+    indexer_public        = "indexer1_pem"
+    indexer_private       = "indexer1-key_pem"
+    dashboard_public      = "dashboard_pem"
+    dashboard_private     = "dashboard-key_pem"
+    admin_public          = "admin_pem"
+    admin_private         = "admin-key_pem"
+    wazuh_api_password   = "wazuh_api_password"
+    wazuh_indexer_password = "wazuh_indexer_password"
+  }
+}
+
+
+data "google_secret_manager_secret_version" "wazuh_certs" {
+  for_each = local.wazuh_secrets
+  secret   = each.value
+}
+
+
 ##----------  greptime job 
 
 
@@ -597,6 +623,14 @@ resource "nomad_job" "grafana" {
   jobspec = file("${path.module}/jobs/grafana.nomad.hcl")
 }
 */
+
+resource "nomad_job" "wazuh" {
+  jobspec = templatefile("${path.module}/jobs/wazuh_cluster.nomad.tpl", {
+    for k, v in data.google_secret_manager_secret_version.wazuh_certs :
+    k => v.secret_data
+  })
+}
+
 
 
 
