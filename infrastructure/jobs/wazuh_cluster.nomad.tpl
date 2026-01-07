@@ -50,8 +50,8 @@ template {
   destination = "local/usr/share/wazuh-indexer/config/certs/root-ca.pem"
   perms       = "644"
   data        =  <<EOF
-  "${root_ca_public}"
-  EOF
+${root_ca_public}
+EOF
 }
 
 # Indexer certificate (public)
@@ -59,8 +59,8 @@ template {
   destination = "local/usr/share/wazuh-indexer/config/certs/indexer.pem"
   perms       = "644"
   data        =  <<EOF
-  "${indexer_public}"
-  EOF
+${indexer_public}
+EOF
 }
 
 # Indexer private key
@@ -68,8 +68,8 @@ template {
   destination = "local/usr/share/wazuh-indexer/config/certs/indexer-key.pem"
   perms       = "600"
   data        =  <<EOF
-  "${indexer_private}"
-  EOF
+${indexer_private}
+EOF
 }
 
 # Admin certificate (optional)
@@ -77,8 +77,8 @@ template {
   destination = "local/usr/share/wazuh-indexer/config/certs/admin.pem"
   perms       = "644"
   data        =  <<EOF
-  "${admin_public}"
-   EOF
+${admin_public}
+EOF
 }
 
 # Admin private key (optional)
@@ -86,8 +86,8 @@ template {
   destination = "local/usr/share/wazuh-indexer/config/certs/admin-key.pem"
   perms       = "600"
   data        =  <<EOF
-  "${admin_private}"
-   <<EOF
+${admin_private}
+EOF
 }
 
 
@@ -106,7 +106,9 @@ EOF
 template {
   destination = "local/config/opensearch-security/internal_users.yml"
   perms       = "644"
-  data        = ${internal_users_yml }
+  data        = <<EOF
+${internal_users_yml }
+EOF
 }
 
       resources {
@@ -229,7 +231,7 @@ template {
   destination = "/var/ossec/local/ssl/root-ca.pem"
   perms       = "644"
   data        =  <<EOF
-  "${root_ca_public}"
+ ${root_ca_public}
   EOF
 }
 
@@ -238,7 +240,7 @@ template {
   destination = "/var/ossec/local/ssl/filebeat.pem"
   perms       = "644"
   data        =  <<EOF
-  "${master_public}"
+  ${master_public}
   EOF
 }
 
@@ -247,7 +249,7 @@ template {
   destination = "/var/ossec/local/ssl/filebeat.key"
   perms       = "600"
   data        =  <<EOF
-  "${master_private}"
+  ${master_private}
   EOF
 }
 
@@ -257,9 +259,9 @@ template {
   destination = "local/wazuh-config/ossec.conf"
   perms       = "644"
    data        = <<EOF
-${wazuh_manager_conf}
-EOF
-}
+   ${wazuh_manager_conf}
+   EOF
+} 
 
 # Secrets for API & Indexer (env file)
 template {
@@ -351,7 +353,7 @@ template {
   destination = "/usr/share/wazuh-dashboard/config/certs/wazuh-dashboard.pem"
   perms       = "644"
   data        =  <<EOF
-  "${dashboard_public}"
+  ${dashboard_public}
   EOF
 }
 
@@ -360,7 +362,7 @@ template {
   destination = "/usr/share/wazuh-dashboard/config/certs/wazuh-dashboard-key.pem"
   perms       = "600"
   data        =  <<EOF
-  "${dashboard_private}"
+  ${dashboard_private}
   EOF
 }
 
@@ -369,8 +371,8 @@ template {
   destination = "/usr/share/wazuh-dashboard/config/certs/root-ca.pem"
   perms       = "644"
   data        = <<EOF
-  "${root_ca_public}"
-EOF
+  ${root_ca_public}
+  EOF
 }
 
 
