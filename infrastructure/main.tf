@@ -593,6 +593,16 @@ locals {
     wazuh_api_password   = "wazuh_api_password"
     wazuh_indexer_password = "wazuh_indexer_password"
   }
+
+configs = {
+  wazuh_yml                  = file("${path.module}/config/wazuh.yml")
+  opensearch_dashboards_yml  = file("${path.module}/config/opensearch_dashboards.yml")
+  wazuh_manager_conf         = file("${path.module}/config/wazuh_manager.conf")
+  opensearch_yml             = file("${path.module}/config/wazuh-indexer.yml")
+  internal_users_yml         = file("${path.module}/config/internal_users.yml")
+}
+
+
 }
 
 
@@ -607,10 +617,19 @@ data "google_secret_manager_secret_version" "wazuh_certs" {
 resource "nomad_job" "wazuh" {
   jobspec = templatefile(
     "${path.module}/jobs/wazuh_cluster.nomad.tpl",
-    {
-      for k, s in data.google_secret_manager_secret_version.wazuh_certs :
+      merge(
+      {
+        wazuh_yml                 = locals.config.wazuh_yml
+        opensearch_dashboards_yml = locals.config.opensearch_dashboards_yml
+        wazuh_manager_conf        = locals.config.wazuh_manager_conf
+        opensearch_yml            = locals.config.opensearch_yml
+        internal_users_yml        = locals.config.internal_users_yml
+      },
+      {
+        for k, s in data.google_secret_manager_secret_version.wazuh_certs :
         k => s.secret_data
-    }
+      }
+    )
   )
 }
 
