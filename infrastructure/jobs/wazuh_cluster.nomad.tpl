@@ -49,35 +49,45 @@ job "wazuh" {
 template {
   destination = "local/usr/share/wazuh-indexer/config/certs/root-ca.pem"
   perms       = "644"
-  data        = "${root_ca_public}"
+  data        =  <<EOF
+  "${root_ca_public}"
+  EOF
 }
 
 # Indexer certificate (public)
 template {
   destination = "local/usr/share/wazuh-indexer/config/certs/indexer.pem"
   perms       = "644"
-  data        = "${indexer_public}"
+  data        =  <<EOF
+  "${indexer_public}"
+  EOF
 }
 
 # Indexer private key
 template {
   destination = "local/usr/share/wazuh-indexer/config/certs/indexer-key.pem"
   perms       = "600"
-  data        = "${indexer_private}"
+  data        =  <<EOF
+  "${indexer_private}"
+  EOF
 }
 
 # Admin certificate (optional)
 template {
   destination = "local/usr/share/wazuh-indexer/config/certs/admin.pem"
   perms       = "644"
-  data        = "${admin_public}"
+  data        =  <<EOF
+  "${admin_public}"
+   EOF
 }
 
 # Admin private key (optional)
 template {
   destination = "local/usr/share/wazuh-indexer/config/certs/admin-key.pem"
   perms       = "600"
-  data        = "${admin_private}"
+  data        =  <<EOF
+  "${admin_private}"
+   <<EOF
 }
 
 
@@ -218,21 +228,27 @@ template {
 template {
   destination = "/var/ossec/local/ssl/root-ca.pem"
   perms       = "644"
-  data        = "${root_ca_public}"
+  data        =  <<EOF
+  "${root_ca_public}"
+  EOF
 }
 
 # Manager cert
 template {
   destination = "/var/ossec/local/ssl/filebeat.pem"
   perms       = "644"
-  data        = "${master_public}"
+  data        =  <<EOF
+  "${master_public}"
+  EOF
 }
 
 # Manager key
 template {
   destination = "/var/ossec/local/ssl/filebeat.key"
   perms       = "600"
-  data        = "${master_private}"
+  data        =  <<EOF
+  "${master_private}"
+  EOF
 }
 
 
@@ -334,21 +350,27 @@ EOF
 template {
   destination = "/usr/share/wazuh-dashboard/config/certs/wazuh-dashboard.pem"
   perms       = "644"
-  data        = "${dashboard_public}"
+  data        =  <<EOF
+  "${dashboard_public}"
+  EOF
 }
 
 # Dashboard key
 template {
   destination = "/usr/share/wazuh-dashboard/config/certs/wazuh-dashboard-key.pem"
   perms       = "600"
-  data        = "${dashboard_private}"
+  data        =  <<EOF
+  "${dashboard_private}"
+  EOF
 }
 
 # Root CA (used by Dashboard)
 template {
   destination = "/usr/share/wazuh-dashboard/config/certs/root-ca.pem"
   perms       = "644"
-  data        = "${root_ca_public}"
+  data        = <<EOF
+  "${root_ca_public}"
+EOF
 }
 
 
