@@ -7,12 +7,7 @@ job "wazuh" {
     value     = "worker-01"
   }
 
-    volume "wazuh-indexer-data" {
-      type      = "host"
-      source    = "greptime/wazuh-indexer/data"
-      read_only = false
-    }
-
+    
   
 
   group "wazuh-indexer" {
@@ -26,6 +21,12 @@ job "wazuh" {
         to     = 9200
       }
     }
+    volume "wazuh-indexer-data" {
+      type      = "host"
+      source    = "greptime/wazuh-indexer/data"
+      read_only = false
+    }
+
 
     task "indexer" {
       driver = "docker"
