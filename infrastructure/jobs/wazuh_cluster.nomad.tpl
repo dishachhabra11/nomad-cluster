@@ -7,6 +7,14 @@ job "wazuh" {
     value     = "worker-01"
   }
 
+    volume "wazuh-indexer-data" {
+      type      = "host"
+      source    = "greptime/wazuh-indexer/data"
+      read_only = false
+    }
+
+  
+
   group "wazuh-indexer" {
     count = 1
     
@@ -128,6 +136,7 @@ EOF
       }
     }
   }
+
 
   group "wazuh-manager" {
     count = 1
