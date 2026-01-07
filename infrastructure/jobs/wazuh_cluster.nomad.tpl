@@ -88,7 +88,7 @@ template {
   destination = "local/config/opensearch.yml"
   perms       = "600"
      data        = <<EOF
-${file("${path.module}/config/wazuh-indexer.yml")}
+${file("$${path.module}/config/wazuh-indexer.yml")}
 EOF
 }
 
@@ -97,7 +97,7 @@ template {
   destination = "local/config/opensearch-security/internal_users.yml"
   perms       = "644"
      data        = <<EOF
-${file("${path.module}/config/internal_users.yml")}
+${file("$${path.module}/config/internal_users.yml")}
 EOF
 }
 
@@ -243,7 +243,7 @@ template {
   destination = "local/wazuh-config/ossec.conf"
   perms       = "644"
    data        = <<EOF
-${file("${path.module}/config/wazuh_manager.conf")}
+${file("$${path.module}/config/wazuh_manager.conf")}
 EOF
 }
 
@@ -360,7 +360,7 @@ template {
   destination = "local/wazuh-config/wazuh.yml"
   perms       = "644"
   data        = <<EOF
-${file("${path.module}/config/wazuh.yml")}
+${file("$${path.module}/config/wazuh.yml")}
 EOF
 }
 
@@ -369,7 +369,7 @@ EOF
   destination = "local/config/opensearch_dashboards.yml"
   perms       = "644"
   data        = <<EOF
-${file("${path.module}/config/opensearch_dashboards.yml")}
+${file("$${path.module}/config/opensearch_dashboards.yml")}
 EOF
 }
 
