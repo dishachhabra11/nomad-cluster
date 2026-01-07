@@ -619,11 +619,11 @@ resource "nomad_job" "wazuh" {
     "${path.module}/jobs/wazuh_cluster.nomad.tpl",
       merge(
       {
-        wazuh_yml                 = locals.config.wazuh_yml
-        opensearch_dashboards_yml = locals.config.opensearch_dashboards_yml
-        wazuh_manager_conf        = locals.config.wazuh_manager_conf
-        opensearch_yml            = locals.config.opensearch_yml
-        internal_users_yml        = locals.config.internal_users_yml
+        wazuh_yml                 = local.config.wazuh_yml
+        opensearch_dashboards_yml = local.opensearch_dashboards_yml
+        wazuh_manager_conf        = local.wazuh_manager_conf
+        opensearch_yml            = local.opensearch_yml
+        internal_users_yml        = local.internal_users_yml
       },
       {
         for k, s in data.google_secret_manager_secret_version.wazuh_certs :
