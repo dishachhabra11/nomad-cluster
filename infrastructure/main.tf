@@ -42,7 +42,7 @@ resource "google_compute_instance_template" "nomad_server" {
   network_interface {
     network = "default"
     access_config {
-
+     nat_ip = google_compute_address.nomad_server_ip.address
     }  # Gives external IP (ephemeral)
   }
 
@@ -424,13 +424,19 @@ resource "google_compute_region_instance_group_manager" "nomad_mig_client" {
   }
   base_instance_name = "nomad-client"
 
-  target_size        = 2
+  target_size        = 0
   
   named_port {
     name = "nomad-ui-client"
     port = 4646
   }
 }
+
+resource "google_compute_address" "nomad_server_ip" {
+  name   = "nomad-server-static-ip"
+  region = "us-central1"
+}
+
 
 resource "google_compute_firewall" "nomad_internal_traffic" {
   name    = "allow-nomad-internal-gossip"
@@ -461,7 +467,7 @@ data "google_secret_manager_secret_version" "restic_repository" { secret = "rest
 
 ##----------  greptime job 
 
-
+/*
 
 resource "nomad_job" "greptime" {
   jobspec = file("${path.module}/jobs/greptime.nomad.hcl")
@@ -478,6 +484,8 @@ resource "nomad_job" "restic-exporter" {
 resource "nomad_job" "grafana" {
   jobspec = file("${path.module}/jobs/grafana.nomad.hcl")
 }
+
+*/
 
 
 
