@@ -18,7 +18,7 @@ provider "google" {
 
 
  provider "nomad" {
-  address = "http://34.122.191.198:4646"
+  address = "http://34.46.25.72:4646"
   region  = "us-central1"
 }
 
@@ -116,9 +116,9 @@ systemctl start consul
 cat <<EOT > /etc/nomad.d/server.hcl 
 
 advertise {
-  http = "$LOCAL_IP"
-  rpc  = "$LOCAL_IP"
-  serf = "$LOCAL_IP"
+  http = "34.46.25.72" # Your Static Public IP
+  rpc  = "34.46.25.72"
+  serf = "34.46.25.72"
 }
 
 server {
