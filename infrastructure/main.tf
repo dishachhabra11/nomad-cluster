@@ -18,10 +18,12 @@ provider "google" {
 
 
  provider "nomad" {
-  address = "http://34.29.0.55:4646"
+  address = "http://34.122.191.198:4646"
   region  = "us-central1"
 }
 
+provider "random" {
+}
 
 
 ## --------------------------------------------------------------------------------------------------
@@ -46,10 +48,14 @@ resource "google_compute_instance_template" "nomad_server" {
     }  # Gives external IP (ephemeral)
   }
 
+service_account {
+    email  = "terraform@alfred-chainlake-staging.iam.gserviceaccount.com"
+    scopes = ["cloud-platform"]
+  }
+  
   lifecycle {
   create_before_destroy = true
 }
-
 
   metadata_startup_script = <<-EOF
     #!/bin/bash
@@ -64,11 +70,50 @@ resource "google_compute_instance_template" "nomad_server" {
     mkdir -p /etc/nomad.d
     chmod 777 /etc/nomad.d
 
-     LOCAL_IP=$(curl -H "Metadata-Flavor: Google" http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/0/ip)
+# Download and install Consul
+curl -O https://releases.hashicorp.com/consul/1.17.3/consul_1.17.3_linux_amd64.zip
+unzip consul_1.17.3_linux_amd64.zip
+sudo mv consul /usr/local/bin/
+sudo chmod +x /usr/local/bin/consul
 
-    cat <<EOT > /etc/nomad.d/server.hcl
+# Create Consul directories
+sudo mkdir -p /etc/consul.d /opt/consul
+sudo chmod 777 /etc/consul.d /opt/consul
 
-   
+LOCAL_IP=$(curl -H "Metadata-Flavor: Google" http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/0/ip)
+
+
+
+# Configure Consul client
+cat <<EOT >/etc/consul.d/consul.hcl
+datacenter = "us-central1"
+data_dir   = "/opt/consul"
+bind_addr = "{{ GetPrivateIP }}"
+client_addr = "0.0.0.0"
+retry_join = ["provider=gce tag_value=consul-server"]
+ui = true
+EOT
+
+# Consul systemd service
+cat <<EOT >/etc/systemd/system/consul.service
+[Unit]
+Description=Consul Agent
+After=network.target
+
+[Service]
+ExecStart=/usr/local/bin/consul agent -config-dir=/etc/consul.d
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+EOT
+
+systemctl daemon-reload
+systemctl enable consul
+systemctl start consul
+
+
+cat <<EOT > /etc/nomad.d/server.hcl 
 
 advertise {
   http = "$LOCAL_IP"
@@ -85,10 +130,13 @@ ui {
   enabled = true
 }
 consul {
-  enabled = false
+  enabled = true
+  address = ""
   auto_advertise = false
-  server_auto_join = false
-  client_auto_join = false
+  server_auto_join = true
+  client_auto_join = true
+
+  server_service_name = "nomad-server"
 }
 
 region = "us-central1" 
@@ -124,6 +172,11 @@ EOT
     systemctl daemon-reload
     systemctl enable nomad
     systemctl start nomad
+
+ systemctl daemon-reload
+    systemctl enable consul
+    systemctl start consul
+
   EOF
 }
 
@@ -158,7 +211,7 @@ resource "google_compute_firewall" "allow_lb_to_nomad" {
 
   allow {
     protocol = "tcp"
-    ports    = ["4646", "4647" , "4648"]
+    ports    = ["4646", "4647" , "4648", "8500" , "8600" , "8301" , "8501" , "8300"]
   }
 
   allow {
@@ -166,7 +219,7 @@ resource "google_compute_firewall" "allow_lb_to_nomad" {
     ports    = ["4647"]
   }
 
-  target_tags = ["nomad-server"]
+  target_tags = ["nomad-server" , "consul-server"]
 
   source_ranges = [
     "0.0.0.0/0"
@@ -196,7 +249,7 @@ resource "google_compute_firewall" "client_firewall" {
 
   allow {
     protocol = "tcp"
-    ports    = ["4646","4000", "4001", "4002", "4003", "8001", "9090" , "3000"]
+    ports    = ["4646","4000", "4001", "4002", "4003", "8001", "9090" , "3000" , "8500" , "8600" , "8301" , "8501"]
   }
 
   target_tags = ["nomad-client"]
@@ -238,6 +291,10 @@ lifecycle {
   create_before_destroy = true
 }
 
+  service_account {
+    email  = "terraform@alfred-chainlake-staging.iam.gserviceaccount.com"
+    scopes = ["cloud-platform"]
+  }
 
 
 
@@ -309,6 +366,19 @@ sudo chmod +x /usr/local/bin/nomad
 sudo mkdir -p /etc/nomad.d
 sudo chmod 777 /etc/nomad.d
 
+
+# Download and install Consul
+curl -O https://releases.hashicorp.com/consul/1.17.3/consul_1.17.3_linux_amd64.zip
+unzip consul_1.17.3_linux_amd64.zip
+sudo mv consul /usr/local/bin/
+sudo chmod +x /usr/local/bin/consul
+
+# Create Consul directories
+sudo mkdir -p /etc/consul.d /opt/consul
+sudo chmod 777 /etc/consul.d /opt/consul
+
+
+
 # 1. Get this client's local IP
 LOCAL_IP=$(curl -H "Metadata-Flavor: Google" http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/0/ip)
 
@@ -330,7 +400,7 @@ advertise {
 client {
   enabled = true
   server_join {
-    retry_join = ["10.128.0.39"]
+    retry_join = ["provider=gce tag_value=nomad-server"]
   }
 
   # THIS IS THE KEY: Linking the physical mount to the Nomad volume name
@@ -343,10 +413,10 @@ client {
 
 
 consul {
-  enabled = false
+  enabled = true
   address = ""  # Or invalid address like "invalid:8500"
-  auto_advertise = false
-  client_auto_join = false
+  auto_advertise = true
+  client_auto_join = true
 }
 
 bind_addr = "0.0.0.0"
@@ -369,6 +439,34 @@ Restart=always
 WantedBy=multi-user.target
 EOT
 
+# Configure Consul client
+cat <<EOT > /etc/consul.d/consul.hcl
+datacenter = "us-central1"
+data_dir   = "/opt/consul"
+bind_addr = "{{ GetPrivateIP }}"
+client_addr = "0.0.0.0"
+retry_join = ["provider=gce tag_value=consul-server"]
+ui = true
+EOT
+
+# Create systemd service
+cat <<EOT > /etc/systemd/system/consul.service
+[Unit]
+Description=Consul Agent
+After=network.target
+
+[Service]
+ExecStart=/usr/local/bin/consul agent -config-dir=/etc/consul.d
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+EOT
+  systemctl daemon-reload
+  systemctl enable consul
+  systemctl start consul
+
+
     systemctl daemon-reload
     systemctl enable nomad
     systemctl start nomad
@@ -377,6 +475,8 @@ EOT
 depends_on = [google_compute_region_disk.greptime_disk]
 
 }
+
+
 
 
 
@@ -455,6 +555,24 @@ resource "google_compute_firewall" "nomad_internal_traffic" {
   # Allow the internal VPC range to talk to itself
   source_ranges = ["10.128.0.0/9"] 
   target_tags   = ["nomad-server", "nomad-client"]
+}
+
+module "consul-server-template" {
+  source = "./modules/instance_template/consul_server"
+  name_prefix= "consul-server"
+  machine_type= "e2-medium"
+  region = "us-central1"
+  image = "projects/ubuntu-os-cloud/global/images/family/ubuntu-2204-lts"
+  tags= ["consul-server"]
+}
+
+module "consul-server-mig" {
+  source               = "./modules/mig/consul_server"
+  project_id           = "alfred-chainlake-staging"
+  region               = "us-central1"
+  name_prefix          = "consul-server"
+  instance_template_id = module.consul-server-template.instance_template_id
+  target_size          = 1
 }
 
 data "google_secret_manager_secret_version" "restic_password" { secret = "restic_password" }
