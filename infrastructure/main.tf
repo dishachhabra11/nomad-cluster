@@ -8,6 +8,10 @@ terraform {
       source  = "hashicorp/nomad"
       version = "2.5.2"
     }
+    grafana = {
+      source = "grafana/grafana"
+      version = "4.23.0"
+    }
   }
 }
 
@@ -24,6 +28,10 @@ provider "google" {
 
 provider "random" {
 }
+
+
+
+
 
 
 ## --------------------------------------------------------------------------------------------------

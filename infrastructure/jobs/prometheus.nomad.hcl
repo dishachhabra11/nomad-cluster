@@ -24,15 +24,15 @@ global:
 
 scrape_configs:
   - job_name: "nomad-server"
-    metrics_path: /v1/metrics
+    metrics_path: /metrics
     params:
       format: ["prometheus"]
     static_configs:
       - targets:
-          - "10.128.0.21:4646"
+          - "67.213.127.53:8086"
 
 remote_write:
-  - url: "http://127.0.0.1:4000/v1/prometheus/write"
+  - url: "http://127.0.0.1:3000/v1/prometheus/write"
 EOF
       }
 
